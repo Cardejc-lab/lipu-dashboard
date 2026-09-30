@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Score de Seguridad — LIPU MTY</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --lipu-dark:    #1a1a2e;
+      --lipu-azul:    #16213e;
+      --critico:      #dc3545;
+      --alerta:       #fd7e14;
+      --medio:        #ffc107;
+      --en-rango:     #198754;
+      --quitar:       #6c757d;
+    }
+
+    body { background: #f0f2f5; font-size: 0.875rem; }
+
+    /* NAVBAR */
+    .navbar { background: var(--lipu-dark); padding: 0.5rem 1.5rem; }
+    .navbar-brand { color: #fff; font-weight: 700; font-size: 1rem; }
+    .navbar-sub   { color: #adb5bd; font-size: 0.75rem; }
+
+    /* FILTROS */
+    .filtros-bar { background: var(--lipu-azul); padding: 0.5rem 1.5rem; }
+    .filtros-bar label { color: #adb5bd; font-size: 0.75rem; margin-bottom: 2px; }
+    .filtros-bar select { font-size: 0.8rem; padding: 2px 6px; height: 28px; }
+
+    /* KPI CARDS */
+    .kpi-card { border-radius: 10px; padding: 0.75rem 1rem; color: #fff; }
+    .kpi-card .kpi-label { font-size: 0.7rem; opacity: 0.85; }
+    .kpi-card .kpi-val   { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
+    .kpi-card .kpi-comp  { font-size: 0.7rem; opacity: 0.85; }
+    .kpi-score  { background: #0d6efd; }
+    .kpi-grave  { background: var(--critico); }
+    .kpi-medio  { background: var(--alerta); }
+    .kpi-bajo   { background: #0dcaf0; color: #000 !important; }
+    .kpi-bajo .kpi-label, .kpi-bajo .kpi-comp { color: #000 !important; }
+
+    /* TABLA SCORE */
+    .tabla-score { font-size: 0.78rem; }
+    .tabla-score thead th {
+      background: var(--lipu-dark);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      font-size: 0.72rem;
+      padding: 6px 8px;
+      white-space: nowrap;
+    }
+    .tabla-score tbody tr { cursor: pointer; transition: background 0.15s; }
+    .tabla-score tbody tr:hover { background: #e8f4ff !important; }
+    .tabla-score tbody tr.seleccionado { background: #cfe2ff !important; }
+    .tabla-score td { padding: 4px 8px; white-space: nowrap; }
+
+    /* SEMAFORO BADGES */
+    .badge-critico  { background: var(--critico);  color: #fff; }
+    .badge-alerta   { background: var(--alerta);   color: #fff; }
+    .badge-medio    { background: var(--medio);    color: #000; }
+    .badge-enrango  { background: var(--en-rango); color: #fff; }
+    .badge-quitar   { background: var(--quitar);   color: #fff; }
+    .semaforo-badge { font-size: 0.68rem; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+
+    /* SCORE CELL COLOR */
+    .score-critico { color: var(--critico);  font-weight: 700; }
+    .score-alerta  { color: var(--alerta);   font-weight: 700; }
+    .score-medio   { color: #b07d00;         font-weight: 700; }
+    .score-enrango { color: var(--en-rango); font-weight: 700; }
+    .score-quitar  { color: var(--quitar);   font-weight: 700; }
+
+    /* PANEL DETALLE */
+    .panel-detalle {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      height: 100%;
+    }
+    .panel-header {
+      background: var(--lipu-dark);
+      color: #fff;
+      padding: 0.6rem 1rem;
+      border-radius: 10px 10px 0 0;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .panel-body { padding: 0.75rem; }
+
+    /* SUBTABLAS EN PANEL */
+    .sub-tabla { font-size: 0.75rem; }
+    .sub-tabla thead th {
+      background: var(--lipu-azul);
+      color: #fff;
+      padding: 4px 8px;
+      font-size: 0.7rem;
+    }
+    .sub-tabla td { padding: 3px 8px; }
+
+    /* CARDS PANEL */
+    .card { border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .card-header-dark {
+      background: var(--lipu-azul);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 8px 8px 0 0;
+    }
+
+    /* LOADING */
+    .loading-overlay {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      background: rgba(26,26,46,0.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; flex-direction: column; color: #fff;
+    }
+    .loading-overlay .spinner-border { width: 3rem; height: 3rem; }
+
+    /* PLACEHOLDER PANEL */
+    .placeholder-panel {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 300px; color: #adb5bd;
+    }
+    .placeholder-panel i { font-size: 3rem; margin-bottom: 1rem; }
+
+    /* SCROLL TABLA */
+    .tabla-wrapper { max-height: 420px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner-border text-light mb-3"></div>
+  <div>Cargando datos de seguridad...</div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="d-flex align-items-center gap-3">
+    <span class="navbar-brand">🚌 LIPU Monterrey</span>
+    <span class="navbar-sub">Sistema de Inteligencia Operativa</span>
+  </div>
+  <span class="navbar-sub" id="fechaHoy"></span>
+</nav>
+
+<!-- FILTROS -->
+<div class="filtros-bar d-flex align-items-end gap-4">
+  <div>
+    <label>MES</label>
+    <select class="form-select form-select-sm" id="filtroMes"></select>
+  </div>
+  <div>
+    <label>SEMANA INICIO</label>
+    <select class="form-select form-select-sm" id="filtroSemanaIni"></select>
+  </div>
+  <div>
+    <label>SEMANA FIN</label>
+    <select class="form-select form-select-sm" id="filtroSemanaFin"></select>
+  </div>
+  <div>
+    <label>PLANTA</label>
+    <select class="form-select form-select-sm" id="filtroPlanta">
+      <option value="">TODAS</option>
+    </select>
+  </div>
+  <div>
+    <label>COORDINADOR</label>
+    <select class="form-select form-select-sm" id="filtroCoord">
+      <option value="">TODOS</option>
+    </select>
+  </div>
+  <div>
+    <button class="btn btn-sm btn-primary" onclick="aplicarFiltros()" style="height:28px;font-size:0.78rem;padding:0 12px">
+      <i class="bi bi-funnel-fill"></i> Aplicar
+    </button>
+    <button class="btn btn-sm btn-outline-light ms-1" onclick="limpiarFiltros()" style="height:28px;font-size:0.78rem;padding:0 12px">
+      <i class="bi bi-x-circle"></i> Limpiar
+    </button>
+  </div>
+</div>
+
+<!-- CONTENIDO PRINCIPAL -->
+<div class="container-fluid px-3 py-3" id="contenido" style="display:none">
+
+  <!-- KPIs -->
+  <div class="row g-2 mb-3">
+    <div class="col">
+      <div class="kpi-card kpi-score">
+        <div class="kpi-label">OPERADORES EVAL.</div>
+        <div class="kpi-val" id="kpiOps">—</div>
+        <div class="kpi-comp" id="kpiOpsComp"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="kpi-card kpi-score">
+        <div class="kpi-label">SCORE GENERAL</div>
+        <div class="kpi-val" id="kpiScore">—</div>
+        <div class="kpi-comp" id="kpiScoreComp"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="kpi-card kpi-grave">
+        <div class="kpi-label">EVENTOS GRAVES</div>
+        <div class="kpi-val" id="kpiGraves">—</div>
+        <div class="kpi-comp" id="kpiGravesComp"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="kpi-card kpi-medio">
+        <div class="kpi-label">EVENTOS MEDIOS</div>
+        <div class="kpi-val" id="kpiMedios">—</div>
+        <div class="kpi-comp" id="kpiMediosComp"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="kpi-card kpi-bajo">
+        <div class="kpi-label">EVENTOS BAJOS</div>
+        <div class="kpi-val" id="kpiBajos">—</div>
+        <div class="kpi-comp" id="kpiBajosComp"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA + PANEL -->
+  <div class="row g-2">
+
+    <!-- TABLA SCORE OPERADORES -->
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-header-dark d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-person-lines-fill me-1"></i>SCORE DE SEGURIDAD POR OPERADOR</span>
+          <span class="text-white-50" id="totalOperadores" style="font-size:0.7rem"></span>
+        </div>
+        <div class="tabla-wrapper">
+          <table class="table table-striped table-hover tabla-score mb-0">
+            <thead>
+              <tr>
+                <th>NÓMINA</th>
+                <th>NOMBRE</th>
+                <th>KM</th>
+                <th>HRS COND.</th>
+                <th>GRAVES</th>
+                <th>MEDIOS</th>
+                <th>BAJOS</th>
+                <th>SCORE</th>
+                <th>SEMÁFORO</th>
+              </tr>
+            </thead>
+            <tbody id="tablaOperadores"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL DETALLE -->
+    <div class="col-lg-5">
+      <div class="panel-detalle">
+        <div class="panel-header" id="panelTitulo">
+          <i class="bi bi-info-circle me-1"></i>Selecciona un operador para ver el detalle
+        </div>
+        <div class="panel-body" id="panelCuerpo">
+          <div class="placeholder-panel">
+            <i class="bi bi-cursor-fill"></i>
+            <span>Haz clic en cualquier operador<br>para ver su análisis completo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SEGUNDA FILA — TABLAS JERARQUÍA -->
+  <div class="row g-2 mt-1">
+
+    <!-- POR JEFE -->
+    <div class="col-lg-3">
+      <div class="card">
+        <div class="card-header-dark"><i class="bi bi-person-badge me-1"></i>SCORE POR JEFE</div>
+        <div style="max-height:200px;overflow-y:auto">
+          <table class="table table-sm sub-tabla mb-0">
+            <thead><tr><th>JEFE</th><th>KM</th><th>SCORE</th><th></th></tr></thead>
+            <tbody id="tablaJefes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- POR COORDINADOR -->
+    <div class="col-lg-3">
+      <div class="card">
+        <div class="card-header-dark"><i class="bi bi-people me-1"></i>SCORE POR COORDINADOR</div>
+        <div style="max-height:200px;overflow-y:auto">
+          <table class="table table-sm sub-tabla mb-0">
+            <thead><tr><th>COORDINADOR</th><th>KM</th><th>SCORE</th><th></th></tr></thead>
+            <tbody id="tablaCoords"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- POR PLANTA -->
+    <div class="col-lg-3">
+      <div class="card">
+        <div class="card-header-dark"><i class="bi bi-building me-1"></i>SCORE POR PLANTA</div>
+        <div style="max-height:200px;overflow-y:auto">
+          <table class="table table-sm sub-tabla mb-0">
+            <thead><tr><th>PLANTA</th><th>KM</th><th>SCORE</th><th></th></tr></thead>
+            <tbody id="tablaPlantas"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRÁFICA TENDENCIA -->
+    <div class="col-lg-3">
+      <div class="card">
+        <div class="card-header-dark"><i class="bi bi-graph-up me-1"></i>TENDENCIA SCORE GENERAL</div>
+        <div style="padding:8px">
+          <canvas id="graficaTendencia" height="150"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONFIGURACIÓN SUPABASE
+// ═══════════════════════════════════════════════════════
+const SUPABASE_URL = "https://xbzovcjjxrupuygarnbk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_l_KnKdVzUVxbs6K7UV1uhg_y35uRU7i";
+
+const headers = {
+  "apikey": SUPABASE_KEY,
+  "Authorization": `Bearer ${SUPABASE_KEY}`,
+  "Content-Type": "application/json"
+};
+
+// ═══════════════════════════════════════════════════════
+// VARIABLES GLOBALES
+// ═══════════════════════════════════════════════════════
+let datosViajes   = [];
+let datosEventos  = [];
+let catOperadores = [];
+let catEventos    = [];
+let graficaTendencia = null;
+let operadorSeleccionado = null;
+
+// ═══════════════════════════════════════════════════════
+// SEMÁFORO
+// ═══════════════════════════════════════════════════════
+function semaforo(score) {
+  if (score === 0)   return { nivel: "99 QUITAR",  cls: "quitar",  badge: "badge-quitar"  };
+  if (score >= 92)   return { nivel: "04 EN RANGO", cls: "enrango", badge: "badge-enrango" };
+  if (score >= 85)   return { nivel: "03 MEDIO",    cls: "medio",   badge: "badge-medio"   };
+  if (score >= 75)   return { nivel: "02 ALERTA",   cls: "alerta",  badge: "badge-alerta"  };
+  return               { nivel: "01 CRÍTICO",  cls: "critico", badge: "badge-critico" };
+}
+
+// ═══════════════════════════════════════════════════════
+// FECHA HOY EN NAVBAR
+// ═══════════════════════════════════════════════════════
+document.getElementById("fechaHoy").textContent =
+  new Date().toLocaleDateString("es-MX", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+
+// ═══════════════════════════════════════════════════════
+// FETCH SUPABASE CON PAGINACIÓN
+// ═══════════════════════════════════════════════════════
+async function fetchTodos(tabla, campos) {
+  let todos = [], offset = 0, limite = 1000;
+  while (true) {
+    const url = `${SUPABASE_URL}/rest/v1/${tabla}?select=${campos}&limit=${limite}&offset=${offset}`;
+    const res  = await fetch(url, { headers });
+    const data = await res.json();
+    if (!data.length) break;
+    todos = todos.concat(data);
+    if (data.length < limite) break;
+    offset += limite;
+  }
+  return todos;
+}
+
+// ═══════════════════════════════════════════════════════
+// CARGAR DATOS INICIALES
+// ═══════════════════════════════════════════════════════
+async function cargarDatos() {
+  try {
+    [datosViajes, datosEventos, catOperadores, catEventos] = await Promise.all([
+      fetchTodos("base_viajes",        "id_colaborador,num_economico,grupo_vehiculos,nombre_conductor,inicio_recorrido,kms_viaje,tiempo_manejo"),
+      fetchTodos("base_eventos",       "nombre_conductor,num_economico,grupo_vehiculos,tipo_evento,hora_inicio"),
+      fetchTodos("catalogo_operadores","nomina_op,nombre_op,jefe,coordinador,planta"),
+      fetchTodos("catalogo_eventos",   "tipo_evento,severidad,peso")
+    ]);
+
+    // Mapa peso por tipo_evento
+    window.mapaPeso = {};
+    catEventos.forEach(e => { window.mapaPeso[e.tipo_evento] = { peso: e.peso, severidad: e.severidad }; });
+
+    // Poblar filtros
+    poblarFiltros();
+
+    // Render inicial
+    aplicarFiltros();
+
+    document.getElementById("loadingOverlay").style.display = "none";
+    document.getElementById("contenido").style.display = "block";
+
+  } catch(err) {
+    document.getElementById("loadingOverlay").innerHTML =
+      `<div class='alert alert-danger'>⚠️ Error al cargar datos<br><small>${err.message}</small></div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// POBLAR FILTROS
+// ═══════════════════════════════════════════════════════
+function poblarFiltros() {
+  // Meses disponibles
+  const meses = [...new Set(datosViajes.map(v => v.inicio_recorrido?.substring(0,7)))].sort().reverse();
+  const selMes = document.getElementById("filtroMes");
+  meses.forEach(m => {
+    const op = document.createElement("option");
+    op.value = m; op.textContent = m;
+    selMes.appendChild(op);
+  });
+
+  // Semanas
+  poblarSemanas(meses[0]);
+  selMes.addEventListener("change", () => poblarSemanas(selMes.value));
+
+  // Plantas
+  const plantas = [...new Set(catOperadores.map(o => o.planta).filter(Boolean))].sort();
+  const selPlanta = document.getElementById("filtroPlanta");
+  plantas.forEach(p => {
+    const op = document.createElement("option");
+    op.value = p; op.textContent = p;
+    selPlanta.appendChild(op);
+  });
+
+  // Coordinadores
+  const coords = [...new Set(catOperadores.map(o => o.coordinador).filter(Boolean))].sort();
+  const selCoord = document.getElementById("filtroCoord");
+  coords.forEach(c => {
+    const op = document.createElement("option");
+    op.value = c; op.textContent = c;
+    selCoord.appendChild(op);
+  });
+}
+
+function getISOWeek(date) {
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + 3 - (d.getDay() + 6) % 7);
+  const week1 = new Date(d.getFullYear(), 0, 4);
+  return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+}
+
+function poblarSemanas(mes) {
+  const viajesMes = datosViajes.filter(v => v.inicio_recorrido?.startsWith(mes));
+  const semanas = [...new Set(viajesMes.map(v => getISOWeek(new Date(v.inicio_recorrido))))].sort((a,b)=>a-b);
+  ["filtroSemanaIni","filtroSemanaFin"].forEach((id, idx) => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = "";
+    semanas.forEach(s => {
+      const op = document.createElement("option");
+      op.value = s; op.textContent = `Semana ${s}`;
+      sel.appendChild(op);
+    });
+    if (idx === 1) sel.selectedIndex = sel.options.length - 1;
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// APLICAR FILTROS Y CALCULAR
+// ═══════════════════════════════════════════════════════
+function aplicarFiltros() {
+  const mes      = document.getElementById("filtroMes").value;
+  const semIni   = parseInt(document.getElementById("filtroSemanaIni").value);
+  const semFin   = parseInt(document.getElementById("filtroSemanaFin").value);
+  const planta   = document.getElementById("filtroPlanta").value;
+  const coord    = document.getElementById("filtroCoord").value;
+
+  // Filtrar viajes
+  let viajes = datosViajes.filter(v => {
+    if (!v.inicio_recorrido?.startsWith(mes)) return false;
+    const sem = getISOWeek(new Date(v.inicio_recorrido));
+    return sem >= semIni && sem <= semFin;
+  });
+
+  // Filtrar eventos
+  let eventos = datosEventos.filter(e => {
+    if (!e.hora_inicio?.startsWith(mes)) return false;
+    const sem = getISOWeek(new Date(e.hora_inicio));
+    return sem >= semIni && sem <= semFin;
+  });
+
+  // Filtrar por planta/coordinador desde catálogo
+  let nominasFiltro = null;
+  if (planta || coord) {
+    const catFiltrado = catOperadores.filter(o =>
+      (!planta || o.planta === planta) &&
+      (!coord  || o.coordinador === coord)
+    );
+    nominasFiltro = new Set(catFiltrado.map(o => o.nomina_op));
+    viajes  = viajes.filter(v  => nominasFiltro.has(v.id_colaborador));
+    eventos = eventos.filter(e => {
+      const cat = catOperadores.find(o => o.nombre_op === e.nombre_conductor);
+      return cat && nominasFiltro.has(cat.nomina_op);
+    });
+  }
+
+  calcularYRenderizar(viajes, eventos, semIni, semFin);
+  operadorSeleccionado = null;
+  document.getElementById("panelTitulo").innerHTML = `<i class="bi bi-info-circle me-1"></i>Selecciona un operador para ver el detalle`;
+  document.getElementById("panelCuerpo").innerHTML = `
+    <div class="placeholder-panel">
+      <i class="bi bi-cursor-fill"></i>
+      <span>Haz clic en cualquier operador<br>para ver su análisis completo</span>
+    </div>`;
+}
+
+function limpiarFiltros() {
+  document.getElementById("filtroPlanta").value = "";
+  document.getElementById("filtroCoord").value  = "";
+  aplicarFiltros();
+}
+
+// ═══════════════════════════════════════════════════════
+// CONVERTIR TIEMPO HH:MM:SS A MINUTOS
+// ═══════════════════════════════════════════════════════
+function tiempoAMinutos(t) {
+  if (!t) return 0;
+  const p = t.split(":");
+  return parseInt(p[0]||0)*60 + parseInt(p[1]||0) + parseInt(p[2]||0)/60;
+}
+
+function minutosAHoras(m) {
+  const h = Math.floor(m/60);
+  const min = Math.round(m%60);
+  return `${h}h ${min}m`;
+}
+
+// ═══════════════════════════════════════════════════════
+// CALCULAR SCORE
+// ═══════════════════════════════════════════════════════
+function calcularScore(pesoTotal, minutos, kms) {
+  if (minutos <= 180 || kms <= 3) return 0;
+  const promEvHra = pesoTotal / minutos;
+  const score = (-90/30000) * (promEvHra * 100) + 95;
+  return Math.max(0, Math.min(95, parseFloat(score.toFixed(2))));
+}
+
+// ═══════════════════════════════════════════════════════
+// CALCULAR Y RENDERIZAR TODO
+// ═══════════════════════════════════════════════════════
+function calcularYRenderizar(viajes, eventos, semIni, semFin) {
+
+  // Mapa catálogo operador por nombre
+  const mapaCat = {};
+  catOperadores.forEach(o => { mapaCat[o.nombre_op] = o; });
+
+  // Mapa eventos por operador
+  const mapaEvOp = {};
+  eventos.forEach(e => {
+    const key = e.nombre_conductor;
+    if (!mapaEvOp[key]) mapaEvOp[key] = [];
+    mapaEvOp[key].push(e);
+  });
+
+  // Agrupar viajes por operador
+  const mapaViOp = {};
+  viajes.forEach(v => {
+    const key = v.nombre_conductor;
+    if (!mapaViOp[key]) mapaViOp[key] = [];
+    mapaViOp[key].push(v);
+  });
+
+  // Calcular score por operador
+  const operadores = [];
+  Object.keys(mapaViOp).forEach(nombre => {
+    const vOp  = mapaViOp[nombre];
+    const eOp  = mapaEvOp[nombre] || [];
+    const cat  = mapaCat[nombre];
+
+    const kms     = vOp.reduce((a,v) => a + (parseFloat(v.kms_viaje)||0), 0);
+    const minutos = vOp.reduce((a,v) => a + tiempoAMinutos(v.tiempo_manejo), 0);
+
+    let pesoTotal = 0, graves = 0, medios = 0, bajos = 0;
+    eOp.forEach(e => {
+      const info = window.mapaPeso[e.tipo_evento];
+      if (info) {
+        pesoTotal += info.peso;
+        if (info.severidad === "01 GRAVE") graves++;
+        else if (info.severidad === "02 MEDIO") medios++;
+        else if (info.severidad === "03 BAJO")  bajos++;
+      }
+    });
+
+    const score = calcularScore(pesoTotal, minutos, kms);
+    const nomina = cat?.nomina_op || vOp[0]?.id_colaborador || "—";
+
+    operadores.push({
+      nomina, nombre, kms, minutos, graves, medios, bajos,
+      score, pesoTotal,
+      jefe:        cat?.jefe        || "—",
+      coordinador: cat?.coordinador || "—",
+      planta:      cat?.planta      || "—"
+    });
+  });
+
+  // Ordenar por score desc (quitar al final)
+  operadores.sort((a,b) => {
+    if (a.score === 0) return 1;
+    if (b.score === 0) return -1;
+    return a.score - b.score;
+  });
+
+  // ── RENDER KPIs ──────────────────────────────────────
+  const opEval  = operadores.filter(o => o.score > 0);
+  const scoreG  = opEval.length ? (opEval.reduce((a,o)=>a+o.score,0)/opEval.length).toFixed(2) : 0;
+  const totG    = operadores.reduce((a,o)=>a+o.graves,0);
+  const totM    = operadores.reduce((a,o)=>a+o.medios,0);
+  const totB    = operadores.reduce((a,o)=>a+o.bajos,0);
+
+  document.getElementById("kpiOps").textContent    = opEval.length;
+  document.getElementById("kpiScore").textContent  = scoreG;
+  document.getElementById("kpiGraves").textContent = totG.toLocaleString("es-MX");
+  document.getElementById("kpiMedios").textContent = totM.toLocaleString("es-MX");
+  document.getElementById("kpiBajos").textContent  = totB.toLocaleString("es-MX");
+  document.getElementById("totalOperadores").textContent = `${operadores.length} operadores`;
+
+  // ── RENDER TABLA OPERADORES ──────────────────────────
+  const tbody = document.getElementById("tablaOperadores");
+  tbody.innerHTML = operadores.map(o => {
+    const s = semaforo(o.score);
+    return `<tr onclick="seleccionarOperador('${o.nomina}', this)" data-nomina="${o.nomina}">
+      <td>${o.nomina}</td>
+      <td>${o.nombre}</td>
+      <td>${o.kms.toLocaleString("es-MX",{maximumFractionDigits:0})}</td>
+      <td>${minutosAHoras(o.minutos)}</td>
+      <td class="text-danger fw-bold">${o.graves}</td>
+      <td class="fw-bold" style="color:var(--alerta)">${o.medios}</td>
+      <td class="text-info fw-bold">${o.bajos}</td>
+      <td class="score-${s.cls}">${o.score}</td>
+      <td><span class="semaforo-badge ${s.badge}">${s.nivel}</span></td>
+    </tr>`;
+  }).join("");
+
+  // ── RENDER TABLAS JERARQUÍA ──────────────────────────
+  renderTablaAgrupada("tablaJefes",  operadores, "jefe");
+  renderTablaAgrupada("tablaCoords", operadores, "coordinador");
+  renderTablaAgrupada("tablaPlantas",operadores, "planta");
+
+  // ── RENDER TENDENCIA SEMANAL ─────────────────────────
+  const semanasRange = [];
+  for (let s = semIni; s <= semFin; s++) semanasRange.push(s);
+
+  const scoresPorSemana = semanasRange.map(sem => {
+    const vSem = viajes.filter(v => getISOWeek(new Date(v.inicio_recorrido)) === sem);
+    const eSem = eventos.filter(e => getISOWeek(new Date(e.hora_inicio)) === sem);
+
+    const mins = vSem.reduce((a,v) => a + tiempoAMinutos(v.tiempo_manejo), 0);
+    const kms  = vSem.reduce((a,v) => a + (parseFloat(v.kms_viaje)||0), 0);
+    const peso = eSem.reduce((a,e) => a + (window.mapaPeso[e.tipo_evento]?.peso||0), 0);
+    return parseFloat(calcularScore(peso, mins, kms).toFixed(2));
+  });
+
+  if (graficaTendencia) graficaTendencia.destroy();
+  graficaTendencia = new Chart(document.getElementById("graficaTendencia"), {
+    type: "line",
+    data: {
+      labels: semanasRange.map(s => `Sem ${s}`),
+      datasets: [{
+        label: "Score",
+        data: scoresPorSemana,
+        borderColor: "#0d6efd",
+        backgroundColor: "rgba(13,110,253,0.1)",
+        borderWidth: 2,
+        pointRadius: 4,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 85, max: 95, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // Guardar para cross-filtering
+  window._operadores = operadores;
+  window._viajes     = viajes;
+  window._eventos    = eventos;
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER TABLA AGRUPADA (Jefes / Coords / Plantas)
+// ═══════════════════════════════════════════════════════
+function renderTablaAgrupada(tbodyId, operadores, campo) {
+  const grupos = {};
+  operadores.filter(o => o.score > 0).forEach(o => {
+    const k = o[campo] || "—";
+    if (!grupos[k]) grupos[k] = { kms: 0, pesoTotal: 0, minutos: 0 };
+    grupos[k].kms       += o.kms;
+    grupos[k].pesoTotal += o.pesoTotal;
+    grupos[k].minutos   += o.minutos;
+  });
+
+  const filas = Object.entries(grupos).map(([k, v]) => {
+    const score = calcularScore(v.pesoTotal, v.minutos, v.kms);
+    const s = semaforo(score);
+    return { k, kms: v.kms, score, s };
+  }).sort((a,b) => a.score - b.score);
+
+  document.getElementById(tbodyId).innerHTML = filas.map(f => `
+    <tr>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis" title="${f.k}">${f.k}</td>
+      <td>${f.kms.toLocaleString("es-MX",{maximumFractionDigits:0})}</td>
+      <td class="score-${f.s.cls}">${f.score}</td>
+      <td><span class="semaforo-badge ${f.s.badge}" style="font-size:0.6rem">${f.s.nivel}</span></td>
+    </tr>`).join("");
+}
+
+// ═══════════════════════════════════════════════════════
+// SELECCIONAR OPERADOR — CROSS FILTERING
+// ═══════════════════════════════════════════════════════
+function seleccionarOperador(nomina, fila) {
+  // Highlight fila
+  document.querySelectorAll(".tabla-score tbody tr").forEach(tr => tr.classList.remove("seleccionado"));
+  fila.classList.add("seleccionado");
+
+  const op = window._operadores.find(o => o.nomina === nomina);
+  if (!op) return;
+
+  operadorSeleccionado = nomina;
+
+  // Filtrar viajes y eventos del operador
+    const vOp = window._viajes.filter(v => v.nombre_conductor === op.nombre);
+  const eOp = window._eventos.filter(e => e.nombre_conductor === op.nombre);
+
+  // Unidades usadas por el operador
+  const unidades = {};
+  vOp.forEach(v => {
+    const k = v.num_economico;
+    if (!unidades[k]) unidades[k] = { kms:0, minutos:0, pesoTotal:0 };
+    unidades[k].kms     += parseFloat(v.kms_viaje)||0;
+    unidades[k].minutos += tiempoAMinutos(v.tiempo_manejo);
+  });
+  eOp.forEach(e => {
+    const k = e.num_economico;
+    if (unidades[k]) {
+      unidades[k].pesoTotal += window.mapaPeso[e.tipo_evento]?.peso || 0;
+    }
+  });
+
+  // Semanas del operador
+  const semanasOp = [...new Set(vOp.map(v => getISOWeek(new Date(v.inicio_recorrido))))].sort((a,b)=>a-b);
+  const scoresSemOp = semanasOp.map(sem => {
+    const vS = vOp.filter(v => getISOWeek(new Date(v.inicio_recorrido)) === sem);
+    const eS = eOp.filter(e => getISOWeek(new Date(e.hora_inicio)) === sem);
+    const mins = vS.reduce((a,v) => a + tiempoAMinutos(v.tiempo_manejo), 0);
+    const kms  = vS.reduce((a,v) => a + (parseFloat(v.kms_viaje)||0), 0);
+    const peso = eS.reduce((a,e) => a + (window.mapaPeso[e.tipo_evento]?.peso||0), 0);
+    return parseFloat(calcularScore(peso, mins, kms).toFixed(2));
+  });
+
+  // Desglose eventos
+  const tiposEv = {};
+  eOp.forEach(e => {
+    const info = window.mapaPeso[e.tipo_evento];
+    if (info) {
+      const k = e.tipo_evento;
+      if (!tiposEv[k]) tiposEv[k] = { count:0, peso:0, severidad: info.severidad };
+      tiposEv[k].count++;
+      tiposEv[k].peso += info.peso;
+    }
+  });
+
+  const s = semaforo(op.score);
+
+  // ── RENDER PANEL ──────────────────────────────────────
+  document.getElementById("panelTitulo").innerHTML =
+    `<i class="bi bi-person-fill me-1"></i>${op.nombre}
+     <span class="semaforo-badge ${s.badge} ms-2">${s.nivel}</span>
+     <span class="ms-2 fw-bold">${op.score}</span>`;
+
+  document.getElementById("panelCuerpo").innerHTML = `
+
+    <!-- MINI KPIs OPERADOR -->
+    <div class="row g-1 mb-2">
+      <div class="col-3">
+        <div class="text-center p-1 rounded" style="background:#e8f4ff">
+          <div style="font-size:0.65rem;color:#666">KM</div>
+          <div style="font-size:0.9rem;font-weight:700;color:#0d6efd">
+            ${op.kms.toLocaleString("es-MX",{maximumFractionDigits:0})}
+          </div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="text-center p-1 rounded" style="background:#fff3cd">
+          <div style="font-size:0.65rem;color:#666">HRS</div>
+          <div style="font-size:0.9rem;font-weight:700;color:#b07d00">
+            ${minutosAHoras(op.minutos)}
+          </div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="text-center p-1 rounded" style="background:#f8d7da">
+          <div style="font-size:0.65rem;color:#666">GRAVES</div>
+          <div style="font-size:0.9rem;font-weight:700;color:var(--critico)">
+            ${op.graves}
+          </div>
+        </div>
+      </div>
+      <div class="col-3">
+        <div class="text-center p-1 rounded" style="background:#d1e7dd">
+          <div style="font-size:0.65rem;color:#666">SCORE</div>
+          <div style="font-size:0.9rem;font-weight:700;color:var(--en-rango)">
+            ${op.score}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFO JERÁRQUICA -->
+    <div class="mb-2 p-2 rounded" style="background:#f8f9fa;font-size:0.72rem">
+      <div><strong>Planta:</strong> ${op.planta}</div>
+      <div><strong>Coordinador:</strong> ${op.coordinador}</div>
+      <div><strong>Jefe:</strong> ${op.jefe}</div>
+    </div>
+
+    <!-- SCORE POR UNIDAD -->
+    <div class="mb-2">
+      <div class="card-header-dark rounded mb-1">
+        <i class="bi bi-truck me-1"></i>UNIDADES UTILIZADAS
+      </div>
+      <table class="table table-sm sub-tabla mb-0">
+        <thead><tr><th>UNIDAD</th><th>KM</th><th>HRS</th><th>SCORE</th><th></th></tr></thead>
+        <tbody>
+          ${Object.entries(unidades).map(([u, v]) => {
+            const sc = calcularScore(v.pesoTotal, v.minutos, v.kms);
+            const sv = semaforo(sc);
+            return `<tr>
+              <td>${u}</td>
+              <td>${v.kms.toLocaleString("es-MX",{maximumFractionDigits:0})}</td>
+              <td>${minutosAHoras(v.minutos)}</td>
+              <td class="score-${sv.cls}">${sc}</td>
+              <td><span class="semaforo-badge ${sv.badge}" style="font-size:0.6rem">${sv.nivel}</span></td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DESGLOSE EVENTOS -->
+    <div class="mb-2">
+      <div class="card-header-dark rounded mb-1">
+        <i class="bi bi-exclamation-triangle me-1"></i>DESGLOSE DE EVENTOS
+      </div>
+      <table class="table table-sm sub-tabla mb-0">
+        <thead><tr><th>TIPO EVENTO</th><th>SEVERIDAD</th><th>CANT.</th><th>PESO</th></tr></thead>
+        <tbody>
+          ${Object.entries(tiposEv).sort((a,b)=>b[1].peso-a[1].peso).map(([t,v]) => `
+            <tr>
+              <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis" title="${t}">${t}</td>
+              <td>${v.severidad}</td>
+              <td class="fw-bold">${v.count}</td>
+              <td class="fw-bold text-danger">${v.peso}</td>
+            </tr>`).join("")}
+          ${Object.keys(tiposEv).length === 0 ?
+            '<tr><td colspan="4" class="text-center text-success">✅ Sin eventos de seguridad</td></tr>' : ""}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TENDENCIA SEMANAL OPERADOR -->
+    <div>
+      <div class="card-header-dark rounded mb-1">
+        <i class="bi bi-graph-up me-1"></i>TENDENCIA SEMANAL
+      </div>
+      <canvas id="graficaOpTendencia" height="100"></canvas>
+    </div>
+  `;
+
+  // Gráfica tendencia operador
+  new Chart(document.getElementById("graficaOpTendencia"), {
+    type: "line",
+    data: {
+      labels: semanasOp.map(s => `Sem ${s}`),
+      datasets: [{
+        label: "Score",
+        data: scoresSemOp,
+        borderColor: "#198754",
+        backgroundColor: "rgba(25,135,84,0.1)",
+        borderWidth: 2,
+        pointRadius: 4,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 75, max: 95, ticks: { font: { size: 10 } } },
+        x: { ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// INICIAR
+// ═══════════════════════════════════════════════════════
+cargarDatos();
+</script>
+</body>
+</html>
