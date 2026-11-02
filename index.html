@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tableros Lipu Monterrey</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#f0f2f7;--card:#fff;--border:#dde3f0;--navy:#1a2236;--navy3:#2c3a55;--text:#1a2236;--muted:#6b7a99;--brand:#7ed321;--brand3:#a8e05f}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif;font-size:14px}
+header{background:var(--navy);color:#fff;border-bottom:3px solid var(--brand);padding:14px max(16px,env(safe-area-inset-left))}
+header h1{margin:0;font-size:18px}header small{color:var(--brand3);font-weight:600}
+main{max-width:1100px;margin:0 auto;padding:20px 16px;display:flex;flex-direction:column;gap:14px}
+h2{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+a.card{display:flex;flex-direction:column;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-decoration:none;color:inherit;border-top:3px solid var(--brand)}
+a.card:hover{border-color:var(--navy3)}a.card b{font-size:15px}a.card span{color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header><h1>Tableros</h1><small>Lipu Monterrey</small></header>
+<main>
+  <h2>Logística</h2>
+  <div class="grid">
+    <a class="card" href="FlotaCartaOperativa.html" data-trx-slug="FlotaCartaOperativa" data-trx-title="Flota y Carta Operativa"><b>Flota y Carta Operativa</b><span>Por revisar, conciliación, RH vs trinomio, planta vs contrato y pre carta operativa.</span></a>
+    <a class="card" href="ConciliacionFlota.html" data-trx-slug="ConciliacionFlota" data-trx-title="Conciliación de Flota ODO"><b>Conciliación de Flota ODO</b><span>Unidades ODO menos asignadas y el estatus de cada unidad del diferencial.</span></a>
+    <a class="card" href="score_operadores.html"><b>Score de operadores</b><span>Tablero existente en este repositorio.</span></a>
+  </div>
+</main>
+</body>
+</html>

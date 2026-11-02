@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>Conciliación de Flota ODO</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* Estándar lipu-dash · Lipu Monterrey · Conciliación: ODO total − asignadas (planta + ruta + operador) = diferencial explicado unidad por unidad */
+:root{
+  --bg:#f0f2f7; --card:#ffffff; --border:#dde3f0; --line:#e6eaf2;
+  --navy:#1a2236; --navy2:#222d42; --navy3:#2c3a55;
+  --text:#1a2236; --ink2:#4a5672; --muted:#6b7a99; --muted2:#8a94ad;
+  --brand:#7ed321; --brand2:#5cb800; --brand3:#a8e05f;
+  --ok:#15803d; --ok-bg:#ecfdf3; --warn:#d97706; --warn-bg:#fffbeb;
+  --bad:#b42318; --bad-bg:#fef3f2; --red:#e53e3e;
+  --info:#2563eb; --info-bg:#eff6ff; --teal:#0891b2;
+  --r:10px; --shadow:0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.03);
+  --font:"Inter",Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);margin:0}
+body{color:var(--text);font-family:var(--font);font-size:14px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--navy)}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--navy);color:#fff;border-bottom:3px solid var(--brand);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.burger{background:var(--navy3);border:1px solid #3a4a6a;color:#fff;border-radius:8px;width:36px;height:34px;cursor:pointer;font-size:16px;flex:none}
+.ttl{display:flex;flex-direction:column;min-width:0;flex:1 1 220px}
+.ttl h1{margin:0;font-size:17px;font-weight:700;line-height:1.2}
+.ttl small{color:var(--brand3);font-size:12px;font-weight:600}
+.badge{display:inline-flex;align-items:center;gap:7px;background:var(--navy2);border:1px solid var(--navy3);border-radius:999px;padding:5px 11px;font-size:12px;color:#d7deec;font-variant-numeric:tabular-nums}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none}.dot.amber{background:#e9a23b}.dot.red{background:var(--red)}
+.tbtn{background:var(--navy3);border:1px solid #3a4a6a;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.tbtn:hover{background:#34456a}
+.tbtn.green{background:var(--brand);border-color:var(--brand);color:#13200a;font-weight:600}.tbtn.green:hover{background:var(--brand3)}
+.alertbtn{background:var(--red);border-color:var(--red);font-weight:600}.alertbtn:hover{background:#c53030}
+.layout{display:grid;grid-template-columns:272px minmax(0,1fr);align-items:start}
+.layout.collapsed{grid-template-columns:minmax(0,1fr)}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 60px);max-height:calc(100vh - 60px);overflow:auto;background:var(--navy2);color:#e6eaf3;
+  padding:14px 14px 24px max(14px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;border-right:1px solid var(--navy3)}
+.layout.collapsed .side{display:none}
+.side h2{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--brand3);font-weight:700;display:flex;justify-content:space-between}
+.clr{background:transparent;border:1px dashed #4a5b7d;color:#d7deec;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:13px;text-align:left}
+.clr:hover{border-color:var(--brand)}
+.fs{display:flex;flex-direction:column;gap:4px}
+.fs label,.ms summary .lab{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#a8b3cc;font-weight:600}
+.fs input{width:100%;border:1px solid var(--navy3);background:var(--navy);color:#fff;border-radius:8px;padding:7px 9px;font-size:13px}
+.fs input::placeholder{color:#8a94ad}
+.ms{border:1px solid var(--navy3);border-radius:8px;background:var(--navy)}
+.ms summary{list-style:none;cursor:pointer;padding:7px 9px;display:flex;flex-direction:column;gap:1px}
+.ms summary::-webkit-details-marker{display:none}
+.ms summary .val{font-size:13px;color:#fff;display:flex;justify-content:space-between;gap:6px}
+.ms summary .val::after{content:"▾";color:#a8b3cc}.ms[open] summary .val::after{content:"▴"}
+.ms .opts{border-top:1px solid var(--navy3);max-height:220px;overflow:auto;padding:4px 0}
+.ms .opt{display:flex;align-items:center;gap:7px;padding:4px 9px;font-size:12.5px;cursor:pointer}
+.ms .opt:hover{background:var(--navy2)}
+.ms .opt input{accent-color:var(--brand)}
+.ms .opt span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms .opt em{font-style:normal;color:#8a94ad;font-variant-numeric:tabular-nums;font-size:11px}
+.qchips{display:flex;flex-wrap:wrap;gap:6px}
+.qchip{border:1px solid #4a5b7d;background:transparent;color:#d7deec;border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
+.qchip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#13200a;font-weight:600}
+.note{font-size:11.5px;color:#8a94ad;margin:0}
+main{min-width:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px;display:flex;flex-direction:column;gap:16px}
+.layout:not(.collapsed) main{padding-left:16px}
+.alert{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--bad-bg);border:1px solid var(--bad);color:var(--bad);border-radius:var(--r);padding:12px 14px;font-size:13px}
+.alert.info{background:var(--info-bg);border-color:var(--info);color:var(--info)}
+.alert .act{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.abtn{border:1px solid currentColor;background:transparent;color:inherit;border-radius:7px;padding:5px 10px;cursor:pointer;font-weight:600;font-size:12px}
+
+/* Ecuación principal */
+.eq{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:stretch}
+.eqb{all:unset;box-sizing:border-box;cursor:pointer;border-radius:var(--r);padding:12px 14px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--line);position:relative}
+.eqb:hover{border-color:var(--muted2)}
+.eqb:focus-visible{outline:2px solid var(--brand)}
+.eqb .l{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.eqb .v{font-size:32px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.05}
+.eqb .c{font-size:12px;color:var(--ink2)}
+.eqb.odo{background:var(--navy);border-color:var(--navy)}.eqb.odo .l{color:#a8b3cc}.eqb.odo .v{color:#fff}.eqb.odo .c{color:#d7deec}
+.eqb.asg{background:var(--ok-bg);border-color:#bfe6cc}.eqb.asg .v{color:var(--ok)}
+.eqb.dif{background:var(--bad-bg);border-color:#f3c7c2}.eqb.dif .v{color:var(--bad)}
+.op{display:none}
+
+/* KPIs del diferencial */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.kpi{all:unset;box-sizing:border-box;cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden;min-width:0}
+.kpi::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:var(--k,var(--navy3))}
+.kpi:hover{border-color:var(--muted2)}.kpi:focus-visible{outline:2px solid var(--brand)}
+.kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.kpi .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .c{font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.tag{align-self:flex-start;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600}
+.t-ok{background:var(--ok-bg);color:var(--ok)}.t-warn{background:var(--warn-bg);color:var(--warn)}.t-bad{background:var(--bad-bg);color:var(--bad)}.t-info{background:var(--info-bg);color:var(--info)}.t-mute{background:var(--line);color:var(--ink2)}
+.secl{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+
+.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--border);padding:0 6px}
+.tab{border:0;background:transparent;padding:11px 13px;cursor:pointer;color:var(--muted);font-weight:600;font-size:13px;border-bottom:3px solid transparent;white-space:nowrap;display:flex;gap:7px;align-items:center}
+.tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--brand)}
+.tab .n{background:var(--line);color:var(--ink2);border-radius:999px;padding:1px 8px;font-size:11px;font-variant-numeric:tabular-nums}
+.tab .n.red{background:var(--bad-bg);color:var(--bad)}
+.tab[aria-selected="true"] .n{background:var(--navy);color:#fff}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);min-width:0;display:flex;flex-direction:column}
+.chead{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.chead .ic{width:28px;height:28px;border-radius:8px;background:var(--navy);color:var(--brand);display:grid;place-items:center;font-size:14px;flex:none}
+.chead h3{margin:0;font-size:15px;font-weight:700}
+.chead .meta{color:var(--muted);font-size:12px}
+.chead .cnt{background:var(--line);border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.chead .sp{flex:1}
+.xbtn{border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:6px 11px;cursor:pointer;font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.xbtn:hover{border-color:var(--muted)}
+.explain{margin:0;padding:10px 14px;color:var(--ink2);font-size:12.5px;border-bottom:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.chip{border:1px solid var(--border);background:transparent;border-radius:999px;padding:4px 11px;font-size:12px;cursor:pointer;color:var(--ink2);font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.tscroll{overflow:auto;max-height:640px}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
+thead th{position:sticky;top:0;background:var(--navy);color:#fff;text-align:left;font-weight:600;font-size:11.5px;padding:0;white-space:nowrap;z-index:1}
+thead th button{all:unset;cursor:pointer;display:block;padding:9px 10px;width:100%;box-sizing:border-box}
+thead th button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+thead th .ar{color:var(--brand3);margin-left:4px}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:340px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+tbody tr.row{cursor:pointer}
+tbody tr.row:hover td{background:#f5f8ff}
+tbody tr.grp td{background:#eef1f8;font-weight:700;cursor:pointer;color:var(--navy)}
+tbody tr.grp:hover td{background:#e6eaf4}
+tbody tr.sub td:first-child{padding-left:22px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.wrapc{white-space:normal;min-width:260px;max-width:460px}
+.rank-badge{display:inline-grid;place-items:center;min-width:24px;height:20px;border-radius:6px;background:var(--line);color:var(--ink2);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 4px}
+.rank-badge.r1{background:var(--navy);color:var(--brand)}
+.pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600;white-space:nowrap;color:#fff}
+.pill.dk{color:#3a2a00}
+.neg{color:var(--bad);font-weight:600}.pos{color:var(--warn);font-weight:600}.okt{color:var(--ok);font-weight:600}
+.empty{padding:28px 14px;text-align:center;color:var(--muted)}
+.foot{color:var(--muted2);font-size:12px;margin:0}
+
+/* Puente */
+.rtop{padding:14px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line)}
+.brg{display:flex;flex-direction:column;gap:4px}
+.brr{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(200px,1.2fr) minmax(120px,2fr) 72px;gap:10px;align-items:center;padding:6px 8px;border-radius:8px}
+.brr:hover{background:#f5f8ff}.brr:focus-visible{outline:2px solid var(--brand)}
+.brr .bl{font-size:13px;font-weight:600;min-width:0}
+.brr .bl small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+.brr .bt{height:14px;background:var(--line);border-radius:4px;position:relative;overflow:hidden}
+.brr .bt i{position:absolute;top:0;bottom:0;border-radius:4px}
+.brr .bn{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.brr.tot .bl,.brr.fin .bl{font-size:14px}
+.brr.fin{border-top:2px solid var(--navy);border-radius:0;padding-top:8px}
+@media (max-width:620px){.brr{grid-template-columns:1fr 60px}.brr .bt{grid-column:1/-1;grid-row:2}}
+
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:14px;padding:14px}
+.chbox{border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.chbox h4{margin:0;font-size:13px;font-weight:700}
+.chbox .sub{font-size:12px;color:var(--muted)}
+.cv{position:relative;height:300px}
+
+.modal{position:fixed;inset:0;background:rgba(10,14,24,.55);z-index:60;display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.mbox{background:var(--card);border-radius:12px;width:min(1040px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border)}
+.mhead{display:flex;gap:8px;align-items:center;padding:12px 16px;background:var(--navy);color:#fff;border-bottom:3px solid var(--brand)}
+.mhead h4{margin:0;font-size:15px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mbody{overflow:auto}.mbody .pad{padding:8px 16px 16px}.mbody .tscroll{max-height:none}
+.kv{display:grid;grid-template-columns:minmax(130px,34%) 1fr;border-bottom:1px solid var(--line);font-size:13px}
+.kv dt{color:var(--muted);padding:7px 8px 7px 0;font-size:12px}.kv dd{margin:0;padding:7px 0;word-break:break-word}
+.msec{margin:14px 0 2px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--brand2);font-weight:700}
+.why{background:var(--warn-bg);border:1px solid #f5d9a8;border-radius:8px;padding:10px 12px;margin-top:10px;font-size:13px}
+.loader{position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted);padding:16px;text-align:center}
+.spin{width:36px;height:36px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--brand);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+@media (max-width:860px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;z-index:50;top:0;bottom:0;left:0;width:min(300px,86vw);max-height:none;padding-top:calc(env(safe-area-inset-top,0px) + 14px);box-shadow:4px 0 24px rgba(0,0,0,.3)}
+  .layout:not(.collapsed) main{padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .scrim{position:fixed;inset:0;background:rgba(10,14,24,.45);z-index:45}
+}
+@media (min-width:861px){.scrim{display:none}}
+@media print{.top,.side,.scrim,.tabs,.chips,.xbtn,.loader{display:none!important}.layout{display:block}.tscroll{max-height:none;overflow:visible}}
+</style>
+
+<div class="loader" id="loader">
+  <div class="spin"></div>
+  <div id="loaderMsg">Cargando SÁBANA de Lipu Mty…</div>
+  <div id="loaderHelp" hidden>
+    <p style="max-width:420px;margin:0 0 10px">Si ves un aviso para permitir Google Sheets, acéptalo. Si no aparece, reintenta o carga el Excel descargado de la hoja.</p>
+    <button class="xbtn" type="button" id="lhRetry">Reintentar</button>
+    <button class="xbtn" type="button" id="lhFile">Cargar Excel local</button>
+  </div>
+</div>
+
+<header class="top">
+  <button class="burger" id="burger" type="button" aria-label="Mostrar u ocultar filtros">☰</button>
+  <div class="ttl"><h1>Conciliación de Flota ODO</h1><small>Lipu Monterrey</small></div>
+  <span class="badge"><span class="dot" id="corteDot"></span><span id="corteTxt">Sin datos</span></span>
+  <button class="tbtn alertbtn" id="btnAlert" type="button" hidden>⚠ <span id="alertN">0</span> críticas</button>
+  <button class="tbtn" id="btnReload" type="button">↻ Recargar</button>
+  <button class="tbtn green" id="btnExcel" type="button">⬇ Excel</button>
+</header>
+
+<div class="layout" id="layout">
+  <aside class="side" aria-label="Filtros">
+    <h2>Filtros <span id="fCount" style="color:#d7deec;letter-spacing:0;text-transform:none;font-weight:500"></span></h2>
+    <button class="clr" id="btnClear" type="button">↺ Limpiar filtros</button>
+    <div class="fs"><label for="fQ">Búsqueda libre</label><input id="fQ" type="search" placeholder="Unidad, nómina, operador, ruta, falla…"></div>
+    <div id="msBox" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="fs"><label>Chips rápidos</label>
+      <div class="qchips">
+        <button class="qchip" type="button" data-q="dif" aria-pressed="false">Solo diferencial</button>
+        <button class="qchip" type="button" data-q="crit" aria-pressed="false">Críticos</button>
+        <button class="qchip" type="button" data-q="disp" aria-pressed="false">Disponibles</button>
+      </div>
+    </div>
+    <p class="note">Periodo: corte actual de la SÁBANA. Asignada = unidad con planta, ruta y operador (no VACANTE) en trinomio.</p>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+  <main>
+    <div id="alerts"></div>
+    <section class="eq" id="eq" aria-label="Conciliación"></section>
+    <p class="secl" id="kTitle">Explicación del diferencial</p>
+    <section class="kpis" id="kpis" aria-label="Diferencial por estatus"></section>
+    <div class="card">
+      <nav class="tabs" role="tablist" id="tabs"></nav>
+      <div id="view"></div>
+    </div>
+    <p class="foot" id="foot"></p>
+  </main>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="mbox">
+    <div class="mhead">
+      <button class="tbtn" id="mBack" type="button" hidden>← Volver</button>
+      <h4 id="mTitle">Detalle</h4>
+      <button class="tbtn green" id="mXls" type="button">⬇ Excel</button>
+      <button class="tbtn" id="mClose" type="button" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="mbody" id="mBody"></div>
+  </div>
+</div>
+<input type="file" id="fileIn" accept=".xlsx,.xls" hidden>
+
+<script>
+"use strict";
+/* =================== CONFIG (Lipu Mty) =================== */
+const CONFIG = {
+  UDN: "Lipu Monterrey",
+  SHEET_ID: "130_M-pzEUv2MJ937Msl7FcSf2WaRpqgv4CC8BCM4rjQ",
+  conector: "Google Sheets",
+  hoja: ["SABANA", "A4:CD1000"],
+  timeoutMs: 15000,
+  autoRecargaMin: 10,
+  requireSession: false,         /* true cuando exista el portal con login */
+  portal: "index.html",
+  slug: "ConciliacionFlota",
+  umbrales: { corralonDias: { ambar: 7, rojo: 30 }, asignacion: { verde: 98, ambar: 85 } }
+};
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use === "function");
+if (CONFIG.requireSession && !IN_CLAUDE && location.protocol !== "file:") { try { if (!sessionStorage.getItem("trx_user")) location.href = CONFIG.portal; } catch(e){} }
+
+/* =================== Utilidades es-MX =================== */
+const $ = s => document.querySelector(s);
+const nf = new Intl.NumberFormat("es-MX");
+const money0 = new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:0});
+const money2 = new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",minimumFractionDigits:2,maximumFractionDigits:2});
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clean = s => String(s ?? "").replace(/\s+/g," ").trim();
+const norm = s => clean(s).toUpperCase();
+const nomina = s => { const t = clean(s).replace(/\.0+$/,""); return t === "0" ? "" : t; };
+const isVac = s => { const n = norm(s); return n === "" || n === "VACANTE"; };
+const isNoRuta = r => { const n = norm(r); return !n || n === "SIN RUTA" || n === "0"; };
+const num = s => { if (s === null || s === undefined || s === "") return null; if (typeof s === "number") return isFinite(s) ? s : null; const t = String(s).replace(/[$,\s]/g,""); if (t === "" || t === "-") return null; const v = Number(t); return isFinite(v) ? v : null; };
+const pad = n => String(n).padStart(2,"0");
+const fInt = v => v === null || v === undefined || v === "" ? "–" : nf.format(v);
+const fPct = (a, b) => (!b) ? "N/A" : (a / b * 100).toFixed(1) + "%";
+const fDate = d => d ? `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}` : "–";
+const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const fBadge = d => `${pad(d.getDate())} ${MESES[d.getMonth()]} ${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const stamp = () => { const d = new Date(); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`; };
+function parseDate(v){
+  if (v === null || v === undefined || v === "") return null;
+  if (typeof v === "number" || /^\d{5}(\.\d+)?$/.test(String(v))) { const d = new Date(Math.round((Number(v) - 25569) * 864e5)); return isNaN(d) ? null : new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); }
+  const m = String(v).trim().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m) { let d=+m[1], mo=+m[2], y=+m[3]; if (y < 100) y += 2000; if (mo > 12 && d <= 12) { const t=d; d=mo; mo=t; } const r = new Date(y, mo-1, d); return isNaN(r) ? null : r; }
+  const r = new Date(v); return isNaN(r) ? null : r;
+}
+
+/* =================== Carga =================== */
+let MCP = null, SOURCE = "", ROWS_READ = 0, RAW = null, M = null;
+async function getMcp(){ if (!IN_CLAUDE) return null; try { return await window.claude.use("mcp"); } catch(e){ return null; } }
+function parseCSV(text){
+  const rows = []; let row = [], f = "", q = false;
+  for (let i = 0; i < text.length; i++) { const c = text[i];
+    if (q) { if (c === '"') { if (text[i+1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+    else if (c === '"') q = true; else if (c === ",") { row.push(f); f = ""; }
+    else if (c === "\n") { row.push(f); rows.push(row); row = []; f = ""; } else if (c !== "\r") f += c; }
+  if (f !== "" || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
+async function fetchT(url){ const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), CONFIG.timeoutMs);
+  try { const r = await fetch(url, {signal:ctl.signal, cache:"no-store"}); if (!r.ok) throw new Error("HTTP " + r.status); return await r.text(); } finally { clearTimeout(t); } }
+async function loadSabana(){
+  const [hoja, rango] = CONFIG.hoja;
+  if (MCP) {
+    const call = () => MCP.callTool(CONFIG.conector, "get_values", { spreadsheetId: CONFIG.SHEET_ID, range: `${hoja}!${rango}` },
+      { cache:{ staleTime:60000, gcTime:600000 }, signal: (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(90000) : undefined });
+    let res; try { res = await call(); } catch (e) { if (!(e && e.retryable)) throw e; await new Promise(r => setTimeout(r, Math.min(e.retryAfterMs || 1500, 8000) + Math.random()*500)); res = await call(); }
+    let p = res.payload; if (typeof p === "string") { try { p = JSON.parse(p); } catch(e){} }
+    return ((p && p.values) || []).map(r => r.map(c => c === null || c === undefined ? "" : String(c)));
+  }
+  if (IN_CLAUDE) throw { code:"no_mcp" };   /* dentro de Claude solo se puede leer por el conector */
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent(hoja)}&range=${rango}&t=${Date.now()}`;
+  try { return parseCSV(await fetchT(url)); } catch (e) { await new Promise(r => setTimeout(r, 1200)); return parseCSV(await fetchT(url)); }
+}
+
+/* =================== Catálogo de estatus del diferencial =================== */
+const ST = { "EN CORRALÓN":"#AE2F25", "FUERA":"#C9551F", "EN TALLER":"#E07B39", "ASIGNADA SIN OPERADOR":"#E9C34F", "DISPONIBLE":"#2563eb", "ASIGNADA":"#5FA36F" };
+const stKey = s => norm(s).startsWith("FUERA") ? "FUERA" : norm(s);
+const pill = (txt, color) => `<span class="pill${color === "#E9C34F" ? " dk" : ""}" style="background:${color}">${esc(txt)}</span>`;
+const stPill = s => pill(s || "–", ST[stKey(s)] || "#8a94ad");
+const CAT = {
+  "En corralón":                     { n:1, c:"#AE2F25", tema:"Unidad detenida en corralón; no tiene ruta en trinomio.", resp:"Siniestros / Gerencia" },
+  "Fuera de operación (ODO)":        { n:2, c:"#C9551F", tema:"ODO la marca fuera de operación (mantenimiento, alto rezago, disponible a revisar).", resp:"Mantenimiento / ODO" },
+  "En taller":                       { n:3, c:"#E07B39", tema:"En taller con falla registrada; no tiene ruta en trinomio.", resp:"Mantenimiento" },
+  "Con ruta sin operador":           { n:4, c:"#E9C34F", tema:"Tiene planta y ruta en trinomio, pero el operador está VACANTE.", resp:"Coordinador / Gerente" },
+  "Con operador sin ruta":           { n:5, c:"#EDA35C", tema:"Está en trinomio con operador, pero la ruta está vacía o como SIN RUTA.", resp:"Coordinador" },
+  "En trinomio sin planta":          { n:6, c:"#E07B39", tema:"Aparece en trinomio sin planta.", resp:"Coordinador" },
+  "Disponible sin asignar":          { n:7, c:"#2563eb", tema:"Unidad en condiciones de operar que no está en ningún renglón del trinomio.", resp:"Planeación / Gerente" },
+  "Otro estatus":                    { n:8, c:"#8a94ad", tema:"Sin ruta y con un estatus no clasificado.", resp:"Planeación" },
+  "Asignada":                        { n:9, c:"#5FA36F", tema:"Tiene planta, ruta y operador en trinomio.", resp:"–" }
+};
+function classify(u){
+  const k = stKey(u.estatus);
+  if (u.asig > 0) return !u.planta ? "En trinomio sin planta" : isNoRuta(u.ruta) ? "Con operador sin ruta" : isVac(u.operador) ? "Con ruta sin operador" : "Asignada";
+  return k === "EN CORRALÓN" ? "En corralón" : k === "FUERA" ? "Fuera de operación (ODO)" : k === "EN TALLER" ? "En taller" : k === "DISPONIBLE" ? "Disponible sin asignar" : "Otro estatus";
+}
+/* Explicación puntual por unidad */
+function explain(u){
+  const veh = [u.marca, u.modelo.replace(u.marca + "/","")].filter(Boolean).join(" ") + (u.anio ? ` ${u.anio}` : "");
+  const tri = u.obs && !/^(CUMPLE|NO CUMPLE|SIN ASIGNACI)/i.test(u.obs) ? ` Comentario trinomio: «${u.obs}».` : "";
+  switch (u.cat) {
+    case "En corralón": return { txt:`En corralón${u.cPlanta ? " (" + u.cPlanta + ")" : ""} desde ${fDate(u.cFecha)}, ${fInt(u.cDias)} días. Motivo: ${u.cMotivo || "sin capturar"}. Estatus: ${u.cStatus || "sin capturar"}${u.cMonto !== null ? ". Monto " + money0.format(u.cMonto) : ""}.`,
+      acc: /PAGO/i.test(u.cStatus) ? "Gestionar el pago pendiente para liberar la unidad." : /LIBERACI/i.test(u.cStatus) ? "Dar seguimiento a la liberación con el municipio." : "Dar seguimiento a la liberación." };
+    case "Fuera de operación (ODO)": return { txt:`ODO la reporta como «${u.statusOdo}». ${veh}, odómetro ${fInt(u.odometro)} km. No aparece en trinomio.${tri}`,
+      acc: /DISPONIBLE/i.test(u.statusOdo) ? "Revisar la unidad y, si está en condiciones, cambiar su estatus en ODO a Operando y asignarla." : "Validar el avance de mantenimiento y la fecha estimada de regreso." };
+    case "En taller": return { txt:`En taller por «${u.falla || "falla sin capturar"}»${u.familia ? " (" + u.familia + ")" : ""}${u.clasif ? ", " + u.clasif : ""}${u.refaccion ? ". Refacción: " + u.refaccion : ""}${u.sic ? ". SIC " + u.sic : ""}${u.fCompromiso ? ". Compromiso: " + u.fCompromiso : ""}${u.costo !== null ? ". Costo ref. " + money2.format(u.costo) : ""}.`,
+      acc: u.fCompromiso ? `Confirmar la salida de taller (compromiso ${u.fCompromiso}).` : "Capturar la fecha compromiso de salida de taller." };
+    case "Con ruta sin operador": return { txt:`Ruta «${u.ruta}» en ${u.planta} (coordinador ${u.coord || "–"}, gerente ${u.gerente || "–"}) con operador VACANTE.${u.rutas ? " Rutas: " + u.rutas + "." : ""}${tri}`,
+      acc:"Asignar un operador activo sin unidad." };
+    case "Con operador sin ruta": return { txt:`Operador ${u.operador} (${u.nomina || "sin nómina"}) en ${u.planta} sin ruta definida («${u.ruta || "vacía"}»).${tri}`, acc:"Definir la ruta en trinomio o liberar la unidad." };
+    case "En trinomio sin planta": return { txt:`Aparece en trinomio con ruta «${u.ruta || "–"}» y operador ${u.operador || "–"}, pero sin planta.${tri}`, acc:"Completar la planta en trinomio." };
+    case "Disponible sin asignar": return { txt:`Disponible: ODO «${u.statusOdo || "–"}», ${veh}, ${u.asientos || "–"} asientos, odómetro ${fInt(u.odometro)} km, ${fInt(u.antUnidad)} años de antigüedad. No aparece en ningún renglón del trinomio.${tri}`,
+      acc:"Asignar a una planta con faltante de contrato o a una ruta vacante." };
+    case "Otro estatus": return { txt:`Estatus «${u.estatus}» sin ruta en trinomio. ODO: «${u.statusOdo || "–"}».`, acc:"Revisar y clasificar la unidad." };
+    default: {
+      const f = [];
+      if (/TALLER|CORRAL|FUERA/.test(stKey(u.estatus))) f.push(u.estatus.toLowerCase());
+      if (u.asig > 1) f.push("en 2+ rutas");
+      if (u.cumple === "NO CUMPLE") f.push("no cumple antigüedad de contrato");
+      if (u.tipoRh && u.tipoRh !== "0") f.push("operador con " + u.tipoRh.replace(/^\d+\s*\)\s*/,"").toLowerCase() + " en RH");
+      return { txt:`Ruta «${u.ruta}» en ${u.planta}, operador ${u.operador}.${f.length ? " Ojo: " + f.join(", ") + "." : ""}`, acc: f.length ? "Revisar la observación." : "–", flags:f };
+    }
+  }
+}
+
+/* =================== Modelo =================== */
+const SAB_FIX = ["Vehicle ID","DISPONIBILIDAD","# ASIGNACIONES TRINOMIO","DUPLICADA","PLANTA","COORDINADOR","NÓMINA","OPERADOR","RUTA","COMENTARIOS","GERENTE","TODAS LAS RUTAS (2+)","OPERADORES (2+)","F. INGRESO","ANTIGÜEDAD OPERADOR","PUESTO","FECHA ÚLT. LOGUEO","NO LOGUEO","TIPO","OBSERVACIONES","RP","ANTIGÜEDAD MÁX. VEHÍCULO","CONTRATO (UNIDADES)","ANTIGÜEDAD UNIDAD (AÑOS)","CUMPLE AÑO CONTRATO","FALLA / ESTATUS","FAMILIA","CLASIFICACIÓN","REFACCIÓN","SIC","FECHA COMPROMISO","COSTO REF","PLANTA CORRALÓN","FECHA INGRESO CORRALÓN","DÍAS EN CORRALÓN","MOTIVO","STATUS CORRALÓN","MONTO"];
+function build(vals){
+  let hiRow = vals.findIndex(r => norm(r[0]) === "VEHICLE ID"); if (hiRow < 0) hiRow = 0;
+  const H = (vals[hiRow] || []).map(clean); SAB_FIX.forEach((n, i) => { if (!H[i]) H[i] = n; });
+  const hi = n => H.findIndex(h => norm(h) === norm(n));
+  const odo = (n, def) => { const i = hi(n); return i >= 0 ? i : def; };
+  const I = { marca:odo("Marca",41), modelo:odo("Modelo",42), asientos:odo("Número de asientos",43), anio:odo("Año del modelo",45), tipo:odo("Tipo de vehículo",47), status:odo("Status",49), eco:odo("Eco",51), placas:odo("Placas Federales",53), cli:odo("Cliente Principal",55), odom:odo("Último Odómetro",58) };
+  const g = (r, i) => i >= 0 ? clean(r[i]) : "";
+  const seen = new Set();
+  const units = vals.slice(hiRow + 1).filter(r => clean(r[0]) && !seen.has(clean(r[0])) && seen.add(clean(r[0]))).map(r => {
+    const u = { kind:"unidad",
+      unidad:clean(r[0]), estatus:clean(r[1]), asig:num(r[2]) || 0, planta:clean(r[4]), coord:clean(r[5]), nomina:nomina(r[6]), operador:clean(r[7]), ruta:clean(r[8]),
+      gerente:clean(r[10]), rutas:clean(r[11]), operadores:clean(r[12]), tipoRh:clean(r[18]),
+      rp:clean(r[20]), antMax:num(r[21]), antUnidad:num(r[23]), cumple:clean(r[24]),
+      falla:clean(r[25]), familia:clean(r[26]), clasif:clean(r[27]), refaccion:clean(r[28]), sic:clean(r[29]), fCompromiso:clean(r[30]), costo:num(r[31]),
+      cPlanta:clean(r[32]), cFecha:parseDate(r[33]), cDias:num(r[34]), cMotivo:clean(r[35]), cStatus:clean(r[36]), cMonto:num(r[37]), obs:clean(r[81]),
+      marca:g(r,I.marca), modelo:g(r,I.modelo), asientos:g(r,I.asientos), anio:g(r,I.anio), tipoVeh:g(r,I.tipo), statusOdo:g(r,I.status), eco:g(r,I.eco), placas:g(r,I.placas), cliOdo:g(r,I.cli), odometro:num(g(r,I.odom)),
+      _raw:r };
+    if (isVac(u.operador)) u.operador = u.asig ? "VACANTE" : "";
+    u.cat = classify(u); u.sevN = CAT[u.cat].n;
+    const e = explain(u); u.detalle = e.txt; u.accion = e.acc; u.flags = e.flags || [];
+    u.responsable = u.cat === "Asignada" || /ruta|planta/i.test(u.cat) ? [u.gerente, u.coord].filter(Boolean).join(" → ") || CAT[u.cat].resp : CAT[u.cat].resp;
+    u.dif = u.cat !== "Asignada";
+    u._crit = u.sevN <= 2; u._disp = u.cat === "Disponible sin asignar";
+    u.flagTxt = u.flags.join(" · ");
+    return u;
+  });
+  return { units, H };
+}
+
+/* =================== Filtros =================== */
+const FILTERS = [
+  { k:"planta",  l:"Cliente / Planta", get:r => r.planta ? norm(r.planta) : "SIN RUTA EN TRINOMIO" },
+  { k:"gerente", l:"Gerente",          get:r => clean(r.gerente) || "Sin gerente" },
+  { k:"coord",   l:"Coordinador",      get:r => norm(r.coord) || "SIN COORDINADOR" },
+  { k:"unidad",  l:"Unidad",           get:r => r.unidad },
+  { k:"cat",     l:"Estatus / Criticidad", get:r => r.cat },
+  { k:"odo",     l:"Status ODO",       get:r => r.statusOdo || "–" },
+  { k:"tipo",    l:"Tipo de vehículo", get:r => r.tipoVeh || "–" },
+  { k:"anio",    l:"Año del modelo",   get:r => r.anio || "–" }
+];
+const S = { tab:"puente", f:{}, q:"", quick:{ dif:false, crit:false, disp:false }, chip:{}, sort:{}, open:{} };
+FILTERS.forEach(f => S.f[f.k] = new Set());
+(function readHash(){ const h = location.hash.slice(1); if (!h) return; const [tab, ...kv] = h.split("&"); if (tab) S.tab = tab;
+  kv.forEach(p => { const [k, v] = p.split("="); if (S.f[k] && v) S.f[k] = new Set(decodeURIComponent(v).split("|")); else if (k === "q" && v) S.q = decodeURIComponent(v); }); })();
+function writeHash(){ let h = "#" + S.tab; if (!IN_CLAUDE) { FILTERS.forEach(f => { if (S.f[f.k].size) h += `&${f.k}=${encodeURIComponent([...S.f[f.k]].join("|"))}`; }); if (S.q) h += "&q=" + encodeURIComponent(S.q); } try { history.replaceState(null, "", h); } catch(e){} }
+(function(){ let c = null; try { c = localStorage.getItem("trx_sidebar_collapsed"); } catch(e){} if (c === "1" || innerWidth <= 860) $("#layout").classList.add("collapsed"); })();
+const searchText = r => norm([r.unidad, r.nomina, r.operador, r.ruta, r.rutas, r.planta, r.coord, r.gerente, r.cat, r.detalle, r.placas, r.eco, r.statusOdo, r.marca].join(" "));
+function pass(r, skip){
+  for (const f of FILTERS) { if (f.k === skip) continue; const sel = S.f[f.k]; if (sel.size && !sel.has(f.get(r))) return false; }
+  if (S.q && !searchText(r).includes(norm(S.q))) return false;
+  if (S.quick.dif && !r.dif) return false;
+  if (S.quick.crit && !r._crit) return false;
+  if (S.quick.disp && !r._disp) return false;
+  return true;
+}
+const activeCount = () => FILTERS.reduce((a,f) => a + S.f[f.k].size, 0) + (S.q ? 1 : 0) + Object.values(S.quick).filter(Boolean).length;
+
+/* =================== Vistas =================== */
+function summary(){
+  const us = M.units.filter(u => pass(u)), tot = us.length, dif = us.filter(u => u.dif).length;
+  return Object.keys(CAT).map(k => { const rows = us.filter(u => u.cat === k);
+    return { kind:"cat", cat:k, c:CAT[k].c, sevN:CAT[k].n, n:rows.length, pctOdo: tot ? rows.length / tot * 100 : null, pctDif: k === "Asignada" ? null : (dif ? rows.length / dif * 100 : null), tema:CAT[k].tema, resp:CAT[k].resp, rows }; }).filter(r => r.n);
+}
+const unitCols = [
+  { k:"unidad", l:"Unidad", b:true },
+  { k:"cat", l:"Estatus", h:u => pill(u.cat, CAT[u.cat].c), s:u => u.sevN },
+  { k:"detalle", l:"Explicación puntual", w:true },
+  { k:"accion", l:"Acción sugerida", w:true },
+  { k:"responsable", l:"Responsable" },
+  { k:"cDias", l:"Días corralón", n:true, h:u => u.cDias === null ? "–" : `<span class="${u.cDias >= CONFIG.umbrales.corralonDias.rojo ? "neg" : u.cDias >= CONFIG.umbrales.corralonDias.ambar ? "pos" : ""}">${nf.format(u.cDias)}</span>` },
+  { k:"costo", l:"Costo taller", n:true, h:u => u.costo === null ? "–" : money2.format(u.costo) },
+  { k:"statusOdo", l:"Status ODO" },
+  { k:"marca", l:"Marca / modelo", v:u => [u.marca, u.modelo.replace(u.marca + "/","")].filter(Boolean).join(" ") },
+  { k:"anio", l:"Año", n:true },
+  { k:"antUnidad", l:"Antig. (años)", n:true },
+  { k:"odometro", l:"Odómetro", n:true, h:u => fInt(u.odometro) },
+  { k:"planta", l:"Planta (trinomio)", v:u => u.planta || "–" },
+  { k:"ruta", l:"Ruta" } ];
+const V = {};
+V.puente = { label:"Puente ODO → asignadas", ic:"⚖", summary:true, base:() => M.units, rows:() => summary(), top:() => bridge(),
+  explain:"Total de unidades en ODO menos las unidades asignadas con planta, ruta y operador en trinomio. Cada barra explica una parte del diferencial; la tabla resume cuántas unidades hay por estatus. Clic en una barra o renglón para ver las unidades.",
+  chips:[["","Todo"],["dif","Solo diferencial"]], chipOf:r => r.cat === "Asignada" ? "asg" : "dif", sort:{k:"cat",dir:1}, sortLabel:"criticidad",
+  cols:[
+    { k:"cat", l:"Estatus", b:true, h:r => pill(r.cat, r.c), s:r => r.sevN },
+    { k:"n", l:"Unidades", n:true },
+    { k:"pctOdo", l:"% de ODO", n:true, h:r => r.pctOdo === null ? "N/A" : r.pctOdo.toFixed(1) + "%" },
+    { k:"pctDif", l:"% del diferencial", n:true, h:r => r.pctDif === null ? "–" : r.pctDif.toFixed(1) + "%" },
+    { k:"tema", l:"Qué tema tiene", w:true },
+    { k:"resp", l:"Responsable" } ] };
+V.dif = { label:"Diferencial", ic:"⚠", rows:() => M.units.filter(u => u.dif),
+  explain:"Cada unidad del diferencial con su estatus y la explicación puntual: falla y costo de taller, días y motivo de corralón, estatus de ODO, ruta vacante o disponibilidad, más la acción sugerida y el responsable. Agrupado por estatus, de peor a mejor.",
+  get chips(){ return [["","Todas"], ...Object.keys(CAT).filter(k => k !== "Asignada").map(k => [k, k])]; }, chipOf:u => u.cat,
+  sort:{k:"cDias",dir:-1}, sortLabel:"días en corralón", group:{ by:u => u.cat, label:"Estatus" }, cols:unitCols };
+V.asig = { label:"Asignadas", ic:"✅", rows:() => M.units.filter(u => !u.dif),
+  explain:"Unidades que sí cuentan como asignadas (planta + ruta + operador). Las observaciones señalan las que conviene revisar: en taller, corralón o fuera de operación, en 2+ rutas, sin cumplir antigüedad de contrato u operador con incidencia en RH.",
+  chips:[["","Todas"],["obs","Con observación"],["fuera","Taller / corralón / fuera"],["dup","2+ rutas"],["ant","No cumple antigüedad"],["rh","Operador con incidencia RH"]],
+  chipOf:u => u, chipMatch:(u, c) => c === "obs" ? u.flags.length > 0 : c === "fuera" ? /TALLER|CORRAL|FUERA/.test(stKey(u.estatus)) : c === "dup" ? u.asig > 1 : c === "ant" ? u.cumple === "NO CUMPLE" : c === "rh" ? !!(u.tipoRh && u.tipoRh !== "0") : true,
+  sort:{k:"unidad",dir:1}, sortLabel:"unidad", group:{ by:u => u.planta, label:"Planta" },
+  cols:[
+    { k:"unidad", l:"Unidad", b:true },
+    { k:"estatus", l:"Estatus", h:u => stPill(u.estatus) },
+    { k:"ruta", l:"Ruta" },
+    { k:"nomina", l:"Nómina" },
+    { k:"operador", l:"Operador" },
+    { k:"coord", l:"Coordinador" },
+    { k:"gerente", l:"Gerente" },
+    { k:"flagTxt", l:"Observación", w:true, h:u => u.flags.length ? `<span class="pos">${esc(u.flagTxt)}</span>` : "–" },
+    { k:"cumple", l:"Cumple contrato", h:u => u.cumple ? pill(u.cumple, u.cumple === "CUMPLE" ? "#5FA36F" : u.cumple === "NO CUMPLE" ? "#AE2F25" : "#8a94ad") : "–" },
+    { k:"anio", l:"Año", n:true } ] };
+V.graf = { label:"Gráficas", ic:"📊", chart:true };
+V.odo = { label:"Flota ODO", ic:"🚌", rows:() => M.units, explain:"Las unidades de ODO con su clasificación en la conciliación.", chips:[["","Todas"],["dif","Diferencial"],["asg","Asignadas"]], chipOf:u => u.dif ? "dif" : "asg",
+  sort:{k:"cat",dir:1}, sortLabel:"estatus", cols:unitCols };
+const ORDER = ["puente","dif","asig","graf","odo"];
+if (!V[S.tab]) S.tab = "puente";
+
+function rowsOf(key, skipChip){
+  const v = V[key]; let rows = v.summary ? v.rows() : v.rows().filter(r => pass(r));
+  const c = S.chip[key];
+  if (c && !skipChip) rows = rows.filter(r => v.chipMatch ? v.chipMatch(v.chipOf(r), c) : v.chipOf(r) === c);
+  return rows;
+}
+function sorter(key){
+  const v = V[key], st = S.sort[key] || v.sort, col = v.cols.find(c => c.k === st.k);
+  const get = col && col.s ? col.s : (r => r[st.k]);
+  return (a, b) => {
+    let x = get(a), y = get(b);
+    if (typeof x !== "number" || typeof y !== "number") { const xn = num(x), yn = num(y); if (xn !== null && yn !== null && /^[\d.,$\s-]+$/.test(String(x)) && /^[\d.,$\s-]+$/.test(String(y))) { x = xn; y = yn; } }
+    const ex = x === null || x === undefined || x === "", ey = y === null || y === undefined || y === "";
+    if (ex && ey) return (a.sevN || 9) - (b.sevN || 9) || String(a.unidad || "").localeCompare(String(b.unidad || ""), "es", {numeric:true});
+    if (ex) return 1; if (ey) return -1;
+    if (typeof x === "string") { const c = x.localeCompare(y, "es", {numeric:true}); if (c) return c * st.dir; }
+    else { if (x < y) return -st.dir; if (x > y) return st.dir; }
+    return String(a.unidad || "").localeCompare(String(b.unidad || ""), "es", {numeric:true});
+  };
+}
+
+/* =================== Render =================== */
+function renderFilters(){
+  const base = M.units;
+  const openSet = new Set([...document.querySelectorAll("#msBox details[open]")].map(d => d.dataset.k));
+  $("#msBox").innerHTML = FILTERS.map(f => {
+    const counts = new Map(); base.filter(r => pass(r, f.k)).forEach(r => { const v = f.get(r); if (v) counts.set(v, (counts.get(v) || 0) + 1); });
+    S.f[f.k].forEach(x => { if (!counts.has(x)) counts.set(x, 0); });
+    if (!counts.size) return "";
+    const opts = [...counts.entries()].sort((a,b) => f.k === "cat" ? CAT[a[0]].n - CAT[b[0]].n : a[0].localeCompare(b[0], "es", {numeric:true}));
+    const sel = S.f[f.k];
+    const val = sel.size === 0 ? `Todos (${opts.length})` : sel.size === 1 ? [...sel][0] : `${sel.size} seleccionados`;
+    return `<details class="ms" data-k="${f.k}"${openSet.has(f.k) ? " open" : ""}><summary><span class="lab">${esc(f.l)}</span><span class="val"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(val)}</span></span></summary>
+      <div class="opts">${opts.map(([o,n]) => `<label class="opt"><input type="checkbox" data-k="${f.k}" value="${esc(o)}"${sel.has(o) ? " checked" : ""}><span title="${esc(o)}">${esc(o)}</span><em>${nf.format(n)}</em></label>`).join("")}</div></details>`;
+  }).join("");
+  document.querySelectorAll("#msBox input[type=checkbox]").forEach(cb => cb.addEventListener("change", e => { const s = S.f[e.target.dataset.k]; e.target.checked ? s.add(e.target.value) : s.delete(e.target.value); renderAll(); }));
+  $("#fQ").value = S.q;
+  document.querySelectorAll(".qchip").forEach(b => b.setAttribute("aria-pressed", S.quick[b.dataset.q]));
+  const n = activeCount(); $("#fCount").textContent = n ? `${n} activos` : "";
+}
+let QL = {};
+function renderTop(){
+  const us = M.units.filter(u => pass(u)), asg = us.filter(u => !u.dif), dif = us.filter(u => u.dif);
+  const pct = us.length ? asg.length / us.length * 100 : null, um = CONFIG.umbrales.asignacion;
+  const tag = pct === null ? ["N/A","t-mute"] : pct >= um.verde ? ["En meta","t-ok"] : pct >= um.ambar ? ["Abajo de meta","t-warn"] : ["Crítico","t-bad"];
+  QL = { odo:{ t:"Unidades ODO", rows:us, view:"odo" }, asg:{ t:"Unidades asignadas", rows:asg, view:"asig" }, dif:{ t:"Diferencial", rows:dif, view:"dif" } };
+  $("#eq").innerHTML = `
+    <button class="eqb odo" type="button" data-q="odo"><span class="l">Unidades ODO</span><span class="v">${fInt(us.length)}</span><span class="c">flota total en ODO</span></button>
+    <button class="eqb asg" type="button" data-q="asg"><span class="l">− Asignadas con planta, ruta y operador</span><span class="v">${fInt(asg.length)}</span><span class="c">${fPct(asg.length, us.length)} de la flota · <span class="tag ${tag[1]}">${tag[0]}</span></span></button>
+    <button class="eqb dif" type="button" data-q="dif"><span class="l">= Diferencial por explicar</span><span class="v">${fInt(dif.length)}</span><span class="c">${fPct(dif.length, us.length)} de la flota · detalle abajo</span></button>`;
+  $("#kTitle").textContent = `Explicación del diferencial (${nf.format(dif.length)} unidades)`;
+  const cats = Object.keys(CAT).filter(k => k !== "Asignada").map(k => ({ k, rows:dif.filter(u => u.cat === k) })).filter(x => x.rows.length);
+  cats.forEach(x => { QL["c:" + x.k] = { t:x.k, rows:x.rows, view:"dif" }; });
+  $("#kpis").innerHTML = cats.length ? cats.map(x => {
+    const extra = x.k === "En taller" ? `${money0.format(x.rows.reduce((a,u) => a + (u.costo || 0), 0))} en refacciones` : x.k === "En corralón" ? `promedio ${fInt(Math.round(x.rows.reduce((a,u) => a + (u.cDias || 0), 0) / x.rows.length))} días` : CAT[x.k].resp;
+    return `<button class="kpi" type="button" data-q="c:${esc(x.k)}" style="--k:${CAT[x.k].c}"><span class="l">${esc(x.k)}</span><span class="v">${fInt(x.rows.length)}</span><span class="c">${fPct(x.rows.length, dif.length)} del diferencial</span><span class="c">${esc(extra)}</span></button>`; }).join("")
+    : `<p class="empty" style="grid-column:1/-1">Sin diferencial con los filtros actuales.</p>`;
+  document.querySelectorAll("#eq [data-q], #kpis [data-q]").forEach(b => b.addEventListener("click", () => { const q = QL[b.dataset.q]; if (q) openList(q.t, q.rows, q.view); }));
+  const crit = dif.filter(u => u._crit).length;
+  $("#btnAlert").hidden = !crit; $("#alertN").textContent = nf.format(crit);
+}
+function bridge(){
+  const us = M.units.filter(u => pass(u)), tot = us.length;
+  const cats = Object.keys(CAT).filter(k => k !== "Asignada").map(k => ({ k, rows:us.filter(u => u.cat === k) })).filter(x => x.rows.length);
+  const asg = us.filter(u => !u.dif);
+  const w = n => tot ? Math.max(n / tot * 100, n ? 0.8 : 0) : 0;
+  let acc = 0;
+  QL["b:t"] = { t:"Unidades ODO", rows:us, view:"odo" }; QL["b:f"] = { t:"Unidades asignadas", rows:asg, view:"asig" };
+  let h = `<button class="brr tot" type="button" data-q="b:t"><span class="bl">Unidades ODO</span><span class="bt"><i style="left:0;width:100%;background:var(--navy3)"></i></span><span class="bn">${fInt(tot)}</span></button>`;
+  cats.forEach(x => { QL["b:" + x.k] = { t:x.k, rows:x.rows, view:"dif" };
+    h += `<button class="brr" type="button" data-q="b:${esc(x.k)}"><span class="bl">${esc(x.k)}<small>${esc(CAT[x.k].tema)}</small></span><span class="bt"><i style="left:${100 - acc - w(x.rows.length)}%;width:${w(x.rows.length)}%;background:${CAT[x.k].c}"></i></span><span class="bn neg">−${fInt(x.rows.length)}</span></button>`;
+    acc += w(x.rows.length); });
+  h += `<button class="brr fin" type="button" data-q="b:f"><span class="bl">Asignadas con planta, ruta y operador<small>${fPct(asg.length, tot)} de ODO · diferencial ${fInt(tot - asg.length)}</small></span><span class="bt"><i style="left:0;width:${w(asg.length)}%;background:#5FA36F"></i></span><span class="bn okt">${fInt(asg.length)}</span></button>`;
+  return `<div class="brg">${h}</div>`;
+}
+function renderTabs(){
+  $("#tabs").innerHTML = ORDER.map(k => { const v = V[k]; let n = null;
+    if (k === "dif") n = M.units.filter(u => u.dif && pass(u)).length; else if (k === "asig") n = M.units.filter(u => !u.dif && pass(u)).length; else if (k === "odo") n = M.units.filter(u => pass(u)).length;
+    return `<button class="tab" role="tab" type="button" aria-selected="${k === S.tab}" data-k="${k}">${v.ic} ${esc(v.label)}${n !== null ? `<span class="n${k === "dif" && n ? " red" : ""}">${nf.format(n)}</span>` : ""}</button>`; }).join("");
+  document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => { S.tab = b.dataset.k; renderAll(); }));
+}
+let CUR = [];
+function cell(c, r){ if (c.h) return c.h(r); const v = c.v ? c.v(r) : r[c.k]; if (v instanceof Date) return fDate(v); if (typeof v === "number") return nf.format(v); return esc(v === null || v === undefined || v === "" ? "–" : v); }
+function tableHtml(key, rows, flat){
+  const v = V[key], st = S.sort[key] || v.sort, grouped = v.group && !flat;
+  CUR = []; let i = 0;
+  const head = `<tr><th class="num"><button type="button" tabindex="-1">#</button></th>${v.cols.map(c => `<th class="${c.n ? "num" : ""}"><button type="button" data-k="${c.k}">${esc(c.l)}<span class="ar">${st.k === c.k ? (st.dir === 1 ? "▲" : "▼") : ""}</span></button></th>`).join("")}</tr>`;
+  const rowHtml = (r, sub, j) => { const idx = CUR.push(r) - 1; return `<tr class="row${sub ? " sub" : ""}" data-i="${idx}"><td class="num"><span class="rank-badge${j <= 3 ? " r1" : ""}">${j}</span></td>${v.cols.map(c => `<td class="${c.n ? "num" : ""}${c.w ? " wrapc" : ""}"${c.b ? ' style="font-weight:600"' : ""}>${cell(c, r)}</td>`).join("")}</tr>`; };
+  let body;
+  if (!rows.length) body = `<tr><td colspan="${v.cols.length + 1}" class="empty">Sin registros con los filtros actuales. Usa “↺ Limpiar filtros”.</td></tr>`;
+  else if (!grouped) body = rows.map(r => rowHtml(r, false, ++i)).join("");
+  else {
+    const gm = new Map(); rows.forEach(r => { const g = v.group.by(r) || "–"; if (!gm.has(g)) gm.set(g, []); gm.get(g).push(r); });
+    const worst = a => Math.min(...a.map(r => r.sevN || 9));
+    const groups = [...gm.entries()].sort((a,b) => worst(a[1]) - worst(b[1]) || b[1].length - a[1].length || a[0].localeCompare(b[0], "es"));
+    S.open[key] = S.open[key] || {};
+    body = groups.map(([g, a]) => { const open = S.open[key][g] !== false; let j = 0;
+      const extra = key === "dif" && CAT[g] ? ` · ${esc(CAT[g].tema)}` : key === "asig" ? ` · ${a.filter(u => u.flags.length).length} con observación` : "";
+      return `<tr class="grp" data-g="${esc(g)}"><td colspan="${v.cols.length + 1}">${open ? "▾" : "▸"} ${esc(v.group.label)}: ${esc(g)} <span style="font-weight:500;color:var(--muted)">· ${nf.format(a.length)} unidades${extra}</span></td></tr>` + (open ? a.map(r => rowHtml(r, true, ++j)).join("") : ""); }).join("");
+  }
+  return `<div class="tscroll"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+function renderView(){
+  const k = S.tab, v = V[k];
+  if (v.chart) { renderCharts(); return; }
+  const base = rowsOf(k, true), rows = rowsOf(k).sort(sorter(k));
+  const st = S.sort[k] || v.sort, sc = v.cols.find(c => c.k === st.k);
+  const chips = v.chips.map(([val, lab]) => { const n = val ? base.filter(r => v.chipMatch ? v.chipMatch(v.chipOf(r), val) : v.chipOf(r) === val).length : base.length;
+    return `<button class="chip" type="button" aria-pressed="${(S.chip[k] || "") === val}" data-v="${esc(val)}">${esc(lab)} · ${nf.format(n)}</button>`; }).join("");
+  $("#view").innerHTML = `<div class="chead"><span class="ic">${v.ic}</span><h3>${esc(v.label)}</h3><span class="cnt">${nf.format(v.summary ? rows.reduce((a,r) => a + r.n, 0) : rows.length)}</span><span class="meta">Ordenado por ${esc(sc ? sc.l.toLowerCase() : v.sortLabel)}${v.group ? " · agrupado por " + v.group.label.toLowerCase() : ""}</span><span class="sp"></span><button class="xbtn" type="button" id="xlsView">⬇ Excel</button></div>
+    <p class="explain">${esc(v.explain)}</p>${v.top ? `<div class="rtop">${v.top()}</div>` : ""}<div class="chips" role="group" aria-label="Filtro rápido">${chips}</div>${tableHtml(k, rows)}`;
+  const ref = [...CUR];
+  document.querySelectorAll("#view .chip").forEach(b => b.addEventListener("click", () => { S.chip[k] = b.dataset.v; renderAll(); }));
+  document.querySelectorAll("#view thead button[data-k]").forEach(b => b.addEventListener("click", () => { const cur = S.sort[k] || v.sort; S.sort[k] = { k:b.dataset.k, dir: cur.k === b.dataset.k ? -cur.dir : 1 }; renderView(); }));
+  document.querySelectorAll("#view tr.grp").forEach(tr => tr.addEventListener("click", () => { const g = tr.dataset.g; S.open[k][g] = S.open[k][g] === false; renderView(); }));
+  document.querySelectorAll("#view tr.row").forEach(tr => tr.addEventListener("click", () => openRecord(ref[+tr.dataset.i])));
+  document.querySelectorAll("#view .brr[data-q]").forEach(b => b.addEventListener("click", () => { const q = QL[b.dataset.q]; if (q) openList(q.t, q.rows, q.view); }));
+  $("#xlsView").addEventListener("click", () => exportRows(k, rows, v.label));
+}
+const CH = {};
+function renderCharts(){
+  const us = M.units.filter(u => pass(u)), dif = us.filter(u => u.dif);
+  $("#view").innerHTML = `<div class="chead"><span class="ic">📊</span><h3>Gráficas del diferencial</h3><span class="meta">Clic en una barra para ver las unidades</span></div>
+    <div class="charts">
+      <div class="chbox"><h4>Diferencial por estatus</h4><span class="sub">${fInt(dif.length)} unidades de ${fInt(us.length)}</span><div class="cv"><canvas id="c1" aria-label="Diferencial por estatus"></canvas></div></div>
+      <div class="chbox"><h4>Asignadas vs diferencial por año del modelo</h4><span class="sub">Ayuda a ver si el diferencial es flota vieja</span><div class="cv"><canvas id="c2" aria-label="Por año del modelo"></canvas></div></div>
+      <div class="chbox"><h4>Asignadas vs diferencial por tipo de vehículo</h4><span class="sub">Camión, camioneta, etc.</span><div class="cv"><canvas id="c3" aria-label="Por tipo de vehículo"></canvas></div></div>
+    </div>`;
+  Object.values(CH).forEach(c => { try { c.destroy(); } catch(e){} });
+  if (!window.Chart) { $("#view").insertAdjacentHTML("beforeend", `<p class="empty">La librería de gráficas no cargó. Pulsa Recargar.</p>`); return; }
+  Chart.defaults.font.family = "Inter, Arial, sans-serif"; Chart.defaults.color = "#4a5672"; Chart.defaults.borderColor = "#e6eaf2";
+  const cats = Object.keys(CAT).filter(k => k !== "Asignada" && dif.some(u => u.cat === k));
+  CH.c1 = new Chart($("#c1"), { type:"bar", data:{ labels:cats, datasets:[{ data:cats.map(k => dif.filter(u => u.cat === k).length), backgroundColor:cats.map(k => CAT[k].c), borderRadius:4 }] },
+    options:{ indexAxis:"y", maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c => `${nf.format(c.raw)} unidades · ${fPct(c.raw, dif.length)} del diferencial` } } }, scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } }, y:{ grid:{display:false} } },
+      onClick:(e, el) => { if (!el.length) return; const k = cats[el[0].index]; openList(k, dif.filter(u => u.cat === k), "dif"); } } });
+  const stack = (id, keyFn, sortFn, title) => {
+    const keys = [...new Set(us.map(keyFn))].sort(sortFn);
+    CH[id] = new Chart($("#" + id), { type:"bar", data:{ labels:keys, datasets:[
+        { label:"Asignadas", data:keys.map(k => us.filter(u => !u.dif && keyFn(u) === k).length), backgroundColor:"#5FA36F", stack:"s" },
+        { label:"Diferencial", data:keys.map(k => us.filter(u => u.dif && keyFn(u) === k).length), backgroundColor:"#AE2F25", stack:"s" } ] },
+      options:{ maintainAspectRatio:false, plugins:{ legend:{ position:"bottom" } }, scales:{ x:{ stacked:true, grid:{display:false} }, y:{ stacked:true, beginAtZero:true, ticks:{ precision:0 } } },
+        onClick:(e, el) => { if (!el.length) return; const k = keys[el[0].index], d = el[0].datasetIndex === 1; openList(`${title} ${k} · ${d ? "diferencial" : "asignadas"}`, us.filter(u => keyFn(u) === k && u.dif === d), d ? "dif" : "asig"); } } });
+  };
+  stack("c2", u => u.anio || "–", (a,b) => String(a).localeCompare(String(b), "es", {numeric:true}), "Año");
+  stack("c3", u => u.tipoVeh || "–", (a,b) => String(a).localeCompare(String(b), "es"), "Tipo");
+}
+
+/* =================== Modales (≤2 clics al registro) =================== */
+let MSTACK = [];
+function showModal(){ $("#modal").hidden = false; $("#mClose").focus(); }
+function closeModal(){ $("#modal").hidden = true; MSTACK = []; }
+function paintModal(){
+  const top = MSTACK[MSTACK.length - 1]; if (!top) { closeModal(); return; }
+  $("#mBack").hidden = MSTACK.length < 2; $("#mTitle").textContent = top.title;
+  if (top.type === "list") {
+    $("#mBody").innerHTML = tableHtml(top.view, top.rows, true); const ref = [...CUR];
+    $("#mBody").querySelectorAll("thead button[data-k]").forEach(b => b.addEventListener("click", () => { const v = V[top.view], cur = S.sort[top.view] || v.sort; S.sort[top.view] = { k:b.dataset.k, dir: cur.k === b.dataset.k ? -cur.dir : 1 }; top.rows.sort(sorter(top.view)); paintModal(); }));
+    $("#mBody").querySelectorAll("tr.row").forEach(tr => tr.addEventListener("click", () => pushRecord(ref[+tr.dataset.i])));
+  } else $("#mBody").innerHTML = `<div class="pad">${top.html}</div>`;
+}
+function openList(title, rows, view){ MSTACK = [{ type:"list", title:`${title} · ${nf.format(rows.length)}`, rows:[...rows].sort(sorter(view)), view }]; paintModal(); showModal(); }
+function openRecord(r){ if (r.kind === "cat") { openList(r.cat, r.rows, r.cat === "Asignada" ? "asig" : "dif"); return; } MSTACK = []; pushRecord(r); showModal(); }
+const kv = (l, v) => `<dl class="kv"><dt>${esc(l)}</dt><dd>${v}</dd></dl>`;
+function pushRecord(u){
+  const H = M.H; let html = `<div class="why"><b>${esc(u.cat)}.</b> ${esc(u.detalle)}<br><b>Acción:</b> ${esc(u.accion)} <b>Responsable:</b> ${esc(u.responsable || "–")}</div>`;
+  [["Estatus",0,4],["Análisis de asignación",81,82],["TRINOMIO",4,13],["RH (operador)",13,20],["Contrato",20,25],["Taller",25,32],["Corralón",32,38],["ODO",38,81]].forEach(([t,a,b]) => {
+    const it = []; for (let i = a; i < b; i++) { const val = clean(u._raw[i]); if ((val !== "" && val !== "0") || i < 4) it.push(kv(H[i] || "", i === 1 ? stPill(val) : esc(val || "–"))); }
+    if (it.length) html += `<p class="msec">${esc(t)}</p>` + it.join("");
+  });
+  MSTACK.push({ type:"rec", title:`Unidad ${u.unidad} · ${u.cat}`, html, row:u }); paintModal();
+}
+$("#mClose").addEventListener("click", closeModal);
+$("#mBack").addEventListener("click", () => { MSTACK.pop(); paintModal(); });
+$("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#modal").hidden) closeModal(); });
+$("#mXls").addEventListener("click", () => { const t = MSTACK[MSTACK.length - 1]; if (!t) return; if (t.type === "list") exportRows(t.view, t.rows, t.title.split(" · ")[0]); else exportRows("odo", [t.row], "Unidad " + t.row.unidad); });
+
+/* =================== Excel =================== */
+let DL = null;
+const sheetName = s => String(s || "Hoja").replace(/[:\\\/?*\[\]]/g, "-").replace(/\s+/g, " ").trim().slice(0,31) || "Hoja";
+function plain(c, r){ const v = c.v ? c.v(r) : r[c.k]; if (v instanceof Date) return fDate(v); if ((c.k === "pctOdo" || c.k === "pctDif") && v !== null) return +v.toFixed(1); return v === null || v === undefined ? "" : v; }
+function sheetOf(view, rows){ const v = V[view]; return XLSX.utils.aoa_to_sheet([v.cols.map(c => c.l), ...rows.map(r => v.cols.map(c => plain(c, r)))]); }
+async function saveWb(wb, name){
+  if (!window.XLSX || !wb) { showAlert("info", "La librería de Excel no cargó. Pulsa Recargar para exportar."); return; }
+  const fname = `${name.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"")}_LipuMty_${stamp()}.xlsx`;
+  if (IN_CLAUDE) { if (!DL) { try { DL = await window.claude.use("downloads"); } catch(e){} }
+    if (DL) { try { await DL.save({ filename:fname, data:new Uint8Array(XLSX.write(wb, { bookType:"xlsx", type:"array" })) }); } catch(e){ showAlert("info", "No se guardó el archivo: la descarga se canceló o no está permitida en esta vista."); } return; } }
+  XLSX.writeFile(wb, fname);
+}
+function exportRows(view, rows, name){
+  if (!window.XLSX) { saveWb(null, name); return; }
+  try { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, sheetOf(view, rows), sheetName(name || V[view].label)); saveWb(wb, name || V[view].label); }
+  catch (e) { showAlert("info", `No se pudo generar el Excel: ${esc(e.message || e)}`); }
+}
+$("#btnExcel").addEventListener("click", () => {
+  if (!M) return; if (!window.XLSX) { saveWb(null, "x"); return; }
+  try {
+    const us = M.units.filter(u => pass(u)), asg = us.filter(u => !u.dif), dif = us.filter(u => u.dif);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["Concepto","Unidades","% de ODO"],["Unidades ODO", us.length, 100],["Asignadas con planta, ruta y operador", asg.length, us.length ? +(asg.length / us.length * 100).toFixed(1) : "N/A"],["Diferencial", dif.length, us.length ? +(dif.length / us.length * 100).toFixed(1) : "N/A"]]), "Conciliacion");
+    XLSX.utils.book_append_sheet(wb, sheetOf("puente", summary().sort(sorter("puente"))), "Resumen por estatus");
+    XLSX.utils.book_append_sheet(wb, sheetOf("dif", dif.sort(sorter("dif"))), "Diferencial");
+    XLSX.utils.book_append_sheet(wb, sheetOf("asig", asg.sort(sorter("asig"))), "Asignadas");
+    saveWb(wb, "ConciliacionFlota");
+  } catch (e) { showAlert("info", `No se pudo generar el Excel: ${esc(e.message || e)}`); }
+});
+
+/* =================== Alertas, corte, arranque =================== */
+function showAlert(kind, html, actions){
+  const box = document.createElement("div"); box.className = "alert" + (kind === "info" ? " info" : "");
+  box.innerHTML = `<span>${html}</span><span class="act"></span>`;
+  (actions || []).forEach(([l, fn]) => { const b = document.createElement("button"); b.className = "abtn"; b.type = "button"; b.textContent = l; b.addEventListener("click", () => { box.remove(); fn(); }); box.querySelector(".act").appendChild(b); });
+  const x = document.createElement("button"); x.className = "abtn"; x.type = "button"; x.textContent = "Cerrar"; x.addEventListener("click", () => box.remove()); box.querySelector(".act").appendChild(x);
+  $("#alerts").appendChild(box);
+}
+function setCorte(d, cached){
+  const ageH = (Date.now() - d.getTime()) / 36e5;
+  $("#corteDot").className = "dot" + (ageH > 72 ? " red" : ageH > 24 ? " amber" : "");
+  $("#corteTxt").textContent = `${cached ? "Copia guardada" : "Actualizado"} ${fBadge(d)} · ${SOURCE} · ${nf.format(ROWS_READ)} filas`;
+}
+function errMsg(e){
+  const c = e && e.code;
+  if (c === "no_mcp") return "Esta vista no tiene acceso al conector de Google Sheets. Pasa cuando abre el enlace alguien que no tiene Google Sheets conectado en claude.ai. Para compartir el tablero usa la versión del portal (GitHub Pages), o pide a la persona conectar Google Sheets en claude.ai → Configuración → Conectores. Mientras tanto puedes usar «Cargar Excel local».";
+  if (e && e.name === "TypeError") return "El navegador no pudo descargar la hoja (Failed to fetch). Pasa al abrir el HTML como archivo local o en un sitio que bloquea conexiones externas. Publícalo en el portal (GitHub Pages) y confirma que la hoja esté compartida como «Cualquier persona con el enlace · Lector».";
+  if (c === "server_not_connected" || c === "selection_required") return "Google Sheets no está conectado para tu cuenta. Agrégalo en claude.ai → Configuración → Conectores y pulsa Reintentar.";
+  if (c === "needs_reauth") return "Tu sesión de Google Sheets expiró. Reconéctala en claude.ai → Configuración → Conectores y pulsa Reintentar.";
+  if (c === "not_in_manifest" || c === "approval_required" || c === "consent_required") return "El tablero necesita tu permiso para leer Google Sheets. Pulsa Reintentar y acepta el aviso.";
+  if (c === "tool_error") return `Google Sheets respondió con error (¿cambió el nombre de la pestaña SABANA?). ${esc(e.message || "")}`;
+  if (c === "cancelled") return "Google Sheets tardó más de 90 s en responder.";
+  if (c === "server_unavailable" || c === "upstream_error") return "Google Sheets no respondió. Intenta de nuevo en unos segundos.";
+  if (e && e.name === "AbortError") return `La hoja tardó más de ${CONFIG.timeoutMs / 1000} s en responder.`;
+  return `No se pudo leer la hoja (${esc((e && (e.message || e.code)) || "error desconocido")}). Verifica que esté compartida como “Cualquier persona con el enlace”.`;
+}
+function renderAll(){
+  if (!M) return; if (!V[S.tab]) S.tab = "puente";
+  renderFilters(); renderTop(); renderTabs(); renderView(); writeHash();
+  const dif = M.units.filter(u => u.dif).length;
+  $("#foot").textContent = `${CONFIG.UDN} · Fuente: ${SOURCE}, pestaña SABANA · ${nf.format(M.units.length)} unidades ODO · ${nf.format(M.units.length - dif)} asignadas · ${nf.format(dif)} en el diferencial (sin filtros).`;
+}
+const CACHE_KEY = "lipu_conc_flota_v1";
+let LOADING = false;
+async function load(manual){
+  if (LOADING) return; LOADING = true;
+  if (!M || manual) { $("#loader").hidden = false; $("#loaderHelp").hidden = true; }
+  const helpT = setTimeout(() => { $("#loaderHelp").hidden = false; }, 8000);
+  $("#alerts").innerHTML = "";
+  try {
+    $("#loaderMsg").textContent = "Conectando con Google Sheets…";
+    if (MCP === null) MCP = await getMcp();
+    SOURCE = MCP ? "Google Sheets (conector)" : "Google Sheets";
+    $("#loaderMsg").textContent = "Leyendo la SÁBANA…";
+    const vals = await loadSabana();
+    if (!vals.length) throw { code:"tool_error", message:"La pestaña SABANA llegó vacía." };
+    RAW = vals; M = build(vals); ROWS_READ = vals.length;
+    setCorte(new Date(), false);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t:Date.now(), raw:vals })); } catch(e){}
+    renderAll();
+  } catch (e) {
+    let cached = null; try { cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); } catch(x){}
+    if (cached && cached.raw && !M) { RAW = cached.raw; M = build(RAW); SOURCE = "copia local"; ROWS_READ = RAW.length; setCorte(new Date(cached.t), true); renderAll(); }
+    showAlert("bad", `<b>Sin conexión a la hoja.</b> ${errMsg(e)}${M ? " Se muestra el último dato bueno." : ""}`, [["Reintentar", () => { MCP = null; load(true); }], ["Cargar Excel local", () => $("#fileIn").click()]]);
+  } finally { clearTimeout(helpT); LOADING = false; $("#loader").hidden = true; }
+}
+$("#lhRetry").addEventListener("click", () => { LOADING = false; MCP = null; load(true); });
+$("#lhFile").addEventListener("click", () => $("#fileIn").click());
+$("#fileIn").addEventListener("change", async ev => {
+  const f = ev.target.files[0]; if (!f || !window.XLSX) return;
+  try {
+    const wb = XLSX.read(await f.arrayBuffer(), { type:"array" });
+    const s = wb.Sheets["SABANA"] || wb.Sheets[Object.keys(wb.Sheets).find(x => norm(x) === "SABANA")];
+    if (!s) throw new Error("El archivo no trae la pestaña SABANA.");
+    const vals = XLSX.utils.sheet_to_json(s, { header:1, raw:false, defval:"" });
+    RAW = vals; M = build(vals); SOURCE = "Excel local · " + f.name; ROWS_READ = vals.length;
+    setCorte(new Date(), false); $("#alerts").innerHTML = ""; $("#loader").hidden = true; LOADING = false; renderAll();
+  } catch (e) { showAlert("bad", `No se pudo leer el Excel: ${esc(e.message)}`); }
+  ev.target.value = "";
+});
+let qT; $("#fQ").addEventListener("input", e => { clearTimeout(qT); qT = setTimeout(() => { S.q = e.target.value; renderAll(); $("#fQ").focus(); }, 250); });
+$("#btnClear").addEventListener("click", () => { FILTERS.forEach(f => S.f[f.k].clear()); S.q = ""; S.quick = { dif:false, crit:false, disp:false }; S.chip = {}; renderAll(); });
+document.querySelectorAll(".qchip").forEach(b => b.addEventListener("click", () => { S.quick[b.dataset.q] = !S.quick[b.dataset.q]; renderAll(); }));
+function toggleSide(force){ const L = $("#layout"); const col = force !== undefined ? force : !L.classList.contains("collapsed"); L.classList.toggle("collapsed", col); $("#scrim").hidden = col || innerWidth > 860; try { localStorage.setItem("trx_sidebar_collapsed", col ? "1" : "0"); } catch(e){} if (S.tab === "graf" && M) setTimeout(renderView, 60); }
+$("#burger").addEventListener("click", () => toggleSide());
+$("#scrim").addEventListener("click", () => toggleSide(true));
+$("#btnAlert").addEventListener("click", () => { S.tab = "dif"; S.chip.dif = ""; S.quick.crit = true; renderAll(); });
+$("#btnReload").addEventListener("click", () => { if (MCP && MCP.invalidate) MCP.invalidate(CONFIG.conector).catch(() => {}); load(true); });
+window.addEventListener("hashchange", () => { const t = location.hash.slice(1).split("&")[0]; if (V[t] && t !== S.tab) { S.tab = t; renderAll(); } });
+setInterval(() => { if (document.visibilityState === "visible" && $("#modal").hidden) load(false); }, CONFIG.autoRecargaMin * 60000);
+load(false);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1242 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+</head>
+<body>
+<title>Flota y Carta Operativa</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* Estándar lipu-dash · Lipu Monterrey: topbar navy · panel de filtros lateral colapsable · KPIs clicables · pestañas · gráficas · tablas jerárquicas · modales */
+:root{
+  --bg:#f0f2f7; --card:#ffffff; --border:#dde3f0; --line:#e6eaf2;
+  --navy:#1a2236; --navy2:#222d42; --navy3:#2c3a55;
+  --text:#1a2236; --ink2:#4a5672; --muted:#6b7a99; --muted2:#8a94ad;
+  --brand:#7ed321; --brand2:#5cb800; --brand3:#a8e05f;
+  --ok:#15803d; --ok-bg:#ecfdf3;
+  --warn:#d97706; --warn-bg:#fffbeb;
+  --bad:#b42318; --bad-bg:#fef3f2; --red:#e53e3e;
+  --info:#2563eb; --info-bg:#eff6ff; --teal:#0891b2;
+  --r:10px; --shadow:0 1px 3px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.03);
+  --font:"Inter",Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);margin:0}
+body{color:var(--text);font-family:var(--font);font-size:14px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:var(--navy)}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--navy);color:#fff;border-bottom:3px solid var(--brand);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.burger{background:var(--navy3);border:1px solid #3a4a6a;color:#fff;border-radius:8px;width:36px;height:34px;cursor:pointer;font-size:16px;flex:none}
+.ttl{display:flex;flex-direction:column;min-width:0;flex:1 1 220px}
+.ttl h1{margin:0;font-size:17px;font-weight:700;line-height:1.2}
+.ttl small{color:var(--brand3);font-size:12px;font-weight:600;letter-spacing:.02em}
+.badge{display:inline-flex;align-items:center;gap:7px;background:var(--navy2);border:1px solid var(--navy3);border-radius:999px;padding:5px 11px;font-size:12px;color:#d7deec;font-variant-numeric:tabular-nums}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none}
+.dot.amber{background:#e9a23b}.dot.red{background:var(--red)}
+.tbtn{background:var(--navy3);border:1px solid #3a4a6a;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:500;white-space:nowrap}
+.tbtn:hover{background:#34456a}
+.tbtn.green{background:var(--brand);border-color:var(--brand);color:#13200a;font-weight:600}
+.tbtn.green:hover{background:var(--brand3)}
+.alertbtn{background:var(--red);border-color:var(--red);font-weight:600}
+.alertbtn:hover{background:#c53030}
+.layout{display:grid;grid-template-columns:272px minmax(0,1fr);align-items:start}
+.layout.collapsed{grid-template-columns:minmax(0,1fr)}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 60px);max-height:calc(100vh - 60px);overflow:auto;background:var(--navy2);color:#e6eaf3;
+  padding:14px 14px 24px max(14px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px;border-right:1px solid var(--navy3)}
+.layout.collapsed .side{display:none}
+.side h2{margin:0;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--brand3);font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.side .clr{background:transparent;border:1px dashed #4a5b7d;color:#d7deec;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:13px;text-align:left}
+.side .clr:hover{border-color:var(--brand)}
+.fs{display:flex;flex-direction:column;gap:4px}
+.fs label,.ms summary .lab{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#a8b3cc;font-weight:600}
+.fs input{width:100%;border:1px solid var(--navy3);background:var(--navy);color:#fff;border-radius:8px;padding:7px 9px;font-size:13px}
+.fs input::placeholder{color:#8a94ad}
+.ms{border:1px solid var(--navy3);border-radius:8px;background:var(--navy)}
+.ms summary{list-style:none;cursor:pointer;padding:7px 9px;display:flex;flex-direction:column;gap:1px}
+.ms summary::-webkit-details-marker{display:none}
+.ms summary .val{font-size:13px;color:#fff;display:flex;justify-content:space-between;gap:6px}
+.ms summary .val::after{content:"▾";color:#a8b3cc}
+.ms[open] summary .val::after{content:"▴"}
+.ms .opts{border-top:1px solid var(--navy3);max-height:220px;overflow:auto;padding:4px 0}
+.ms .opt{display:flex;align-items:center;gap:7px;padding:4px 9px;font-size:12.5px;cursor:pointer}
+.ms .opt:hover{background:var(--navy2)}
+.ms .opt input{accent-color:var(--brand)}
+.ms .opt span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ms .opt em{font-style:normal;color:#8a94ad;font-variant-numeric:tabular-nums;font-size:11px}
+.qchips{display:flex;flex-wrap:wrap;gap:6px}
+.qchip{border:1px solid #4a5b7d;background:transparent;color:#d7deec;border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
+.qchip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#13200a;font-weight:600}
+.side .note{font-size:11.5px;color:#8a94ad;margin:0}
+main{min-width:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px;display:flex;flex-direction:column;gap:16px}
+.layout:not(.collapsed) main{padding-left:16px}
+.alert{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--bad-bg);border:1px solid var(--bad);color:var(--bad);border-radius:var(--r);padding:12px 14px;font-size:13px}
+.alert.info{background:var(--info-bg);border-color:var(--info);color:var(--info)}
+.alert .act{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.abtn{border:1px solid currentColor;background:transparent;color:inherit;border-radius:7px;padding:5px 10px;cursor:pointer;font-weight:600;font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px}
+.kpi{all:unset;box-sizing:border-box;cursor:pointer;background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:4px;position:relative;overflow:hidden;min-width:0}
+.kpi::before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:var(--k,var(--navy3))}
+.kpi:hover{border-color:var(--muted2)}
+.kpi:focus-visible{outline:2px solid var(--brand)}
+.kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.kpi .v{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .c{font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.tag{align-self:flex-start;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600}
+.t-ok{background:var(--ok-bg);color:var(--ok)}.t-warn{background:var(--warn-bg);color:var(--warn)}.t-bad{background:var(--bad-bg);color:var(--bad)}.t-info{background:var(--info-bg);color:var(--info)}.t-mute{background:var(--line);color:var(--ink2)}
+.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--border);padding:0 6px}
+.tab{border:0;background:transparent;padding:11px 13px;cursor:pointer;color:var(--muted);font-weight:600;font-size:13px;border-bottom:3px solid transparent;white-space:nowrap;display:flex;gap:7px;align-items:center}
+.tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--brand)}
+.tab .n{background:var(--line);color:var(--ink2);border-radius:999px;padding:1px 8px;font-size:11px;font-variant-numeric:tabular-nums}
+.tab .n.red{background:var(--bad-bg);color:var(--bad)}
+.tab[aria-selected="true"] .n{background:var(--navy);color:#fff}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow);min-width:0;display:flex;flex-direction:column}
+.chead{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.chead .ic{width:28px;height:28px;border-radius:8px;background:var(--navy);color:var(--brand);display:grid;place-items:center;font-size:14px;flex:none}
+.chead h3{margin:0;font-size:15px;font-weight:700}
+.chead .meta{color:var(--muted);font-size:12px}
+.chead .cnt{background:var(--line);border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.chead .sp{flex:1}
+.xbtn{border:1px solid var(--border);background:var(--bg);border-radius:8px;padding:6px 11px;cursor:pointer;font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.xbtn:hover{border-color:var(--muted)}
+.explain{margin:0;padding:10px 14px;color:var(--ink2);font-size:12.5px;border-bottom:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.chip{border:1px solid var(--border);background:transparent;border-radius:999px;padding:4px 11px;font-size:12px;cursor:pointer;color:var(--ink2);font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.tscroll{overflow:auto;max-height:620px}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
+thead th{position:sticky;top:0;background:var(--navy);color:#fff;text-align:left;font-weight:600;font-size:11.5px;padding:0;white-space:nowrap;z-index:1}
+thead th button{all:unset;cursor:pointer;display:block;padding:9px 10px;width:100%;box-sizing:border-box}
+thead th button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+thead th .ar{color:var(--brand3);margin-left:4px}
+tbody td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:320px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+tbody tr.row{cursor:pointer}
+tbody tr.row:hover td{background:#f5f8ff}
+tbody tr.grp td{background:#eef1f8;font-weight:700;cursor:pointer;color:var(--navy)}
+tbody tr.grp:hover td{background:#e6eaf4}
+tbody tr.sub td:first-child{padding-left:22px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.wrapc{white-space:normal;min-width:240px}
+.rank-badge{display:inline-grid;place-items:center;min-width:24px;height:20px;border-radius:6px;background:var(--line);color:var(--ink2);font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 4px}
+.rank-badge.r1{background:var(--navy);color:var(--brand)}
+.pill{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11px;font-weight:600;white-space:nowrap;color:#fff}
+.pill.dk{color:#3a2a00}
+.neg{color:var(--bad);font-weight:600}.pos{color:var(--warn);font-weight:600}.okt{color:var(--ok);font-weight:600}
+.mbar{display:flex;align-items:center;gap:6px;min-width:130px}
+.mbar .t{flex:1;height:7px;background:var(--line);border-radius:999px;position:relative;overflow:hidden}
+.mbar .t i{position:absolute;left:0;top:0;bottom:0;border-radius:999px}
+.empty{padding:28px 14px;text-align:center;color:var(--muted)}
+.foot{color:var(--muted2);font-size:12px;margin:0}
+.rtop{padding:14px;display:flex;flex-direction:column;gap:14px;border-bottom:1px solid var(--line)}
+.rtop h4{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.mini .kpi{padding:10px 12px}
+.mini .kpi .v{font-size:24px}
+.mx{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+.mx table{font-size:12.5px}
+.mx th,.mx td{padding:7px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.mx thead th{position:static;padding:8px 10px}
+.mx tbody tr:last-child td{font-weight:700;background:#eef1f8}
+.brg{display:flex;flex-direction:column;gap:4px}
+.brr{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(180px,1.1fr) minmax(120px,2fr) 70px;gap:10px;align-items:center;padding:6px 8px;border-radius:8px}
+.brr:hover{background:#f5f8ff}
+.brr:focus-visible{outline:2px solid var(--brand)}
+.brr .bl{font-size:13px;font-weight:600;min-width:0}
+.brr .bl small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+.brr .bt{height:14px;background:var(--line);border-radius:4px;position:relative;overflow:hidden}
+.brr .bt i{position:absolute;top:0;bottom:0;border-radius:4px}
+.brr .bn{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.brr.tot .bl,.brr.fin .bl{font-size:14px}
+.brr.fin{border-top:2px solid var(--navy);border-radius:0;padding-top:8px}
+.bside{font-size:12.5px;color:var(--ink2);display:flex;flex-wrap:wrap;gap:6px 16px}
+@media (max-width:620px){.brr{grid-template-columns:1fr 60px}.brr .bt{grid-column:1/-1;grid-row:2}}
+.split{display:flex;height:30px;border-radius:8px;overflow:hidden;border:1px solid var(--line)}
+.split .sg{all:unset;box-sizing:border-box;cursor:pointer;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;font-variant-numeric:tabular-nums}
+.split .sg:hover{filter:brightness(1.08)}
+.split .sg:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.mxb{all:unset;cursor:pointer;color:var(--info);font-weight:600;font-variant-numeric:tabular-nums}
+.mxb:hover{text-decoration:underline}
+.mxb:focus-visible{outline:2px solid var(--brand)}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:14px;padding:14px}
+.chbox{border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.chbox h4{margin:0;font-size:13px;font-weight:700}
+.chbox .sub{font-size:12px;color:var(--muted)}
+.cv{position:relative;height:300px}
+.cv.tall{height:420px}
+.modal{position:fixed;inset:0;background:rgba(10,14,24,.55);z-index:60;display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.mbox{background:var(--card);border-radius:12px;width:min(1000px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--border)}
+.mhead{display:flex;gap:8px;align-items:center;padding:12px 16px;background:var(--navy);color:#fff;border-bottom:3px solid var(--brand)}
+.mhead h4{margin:0;font-size:15px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mbody{overflow:auto}
+.mbody .pad{padding:8px 16px 16px}
+.mbody .tscroll{max-height:none}
+.kv{display:grid;grid-template-columns:minmax(130px,36%) 1fr;border-bottom:1px solid var(--line);font-size:13px}
+.kv dt{color:var(--muted);padding:7px 8px 7px 0;font-size:12px}
+.kv dd{margin:0;padding:7px 0;word-break:break-word}
+.msec{margin:14px 0 2px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--brand2);font-weight:700}
+.loader{position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted);padding:16px;text-align:center}
+.spin{width:36px;height:36px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--brand);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+@media (max-width:860px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;z-index:50;top:0;bottom:0;left:0;width:min(300px,86vw);max-height:none;padding-top:calc(env(safe-area-inset-top,0px) + 14px);box-shadow:4px 0 24px rgba(0,0,0,.3)}
+  .layout:not(.collapsed) main{padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .scrim{position:fixed;inset:0;background:rgba(10,14,24,.45);z-index:45}
+}
+@media (min-width:861px){.scrim{display:none}}
+@media print{
+  .top,.side,.scrim,.tabs,.chips,.xbtn,.loader{display:none!important}
+  .layout{display:block}.tscroll{max-height:none;overflow:visible}body{background:#fff}
+}
+</style>
+
+<div class="loader" id="loader">
+  <div class="spin"></div>
+  <div id="loaderMsg">Cargando hojas de Lipu Mty…</div>
+  <div id="loaderHelp" hidden>
+    <p style="max-width:420px;margin:0 0 10px">Si ves un aviso para permitir Google Sheets, acéptalo. Si no aparece, reintenta o carga el Excel descargado de la hoja.</p>
+    <button class="xbtn" type="button" id="lhRetry">Reintentar</button>
+    <button class="xbtn" type="button" id="lhFile">Cargar Excel local</button>
+  </div>
+</div>
+
+<header class="top">
+  <button class="burger" id="burger" type="button" aria-label="Mostrar u ocultar filtros" aria-controls="side">☰</button>
+  <div class="ttl"><h1>Flota y Carta Operativa</h1><small>Lipu Monterrey</small></div>
+  <span class="badge" id="corte"><span class="dot" id="corteDot"></span><span id="corteTxt">Sin datos</span></span>
+  <button class="tbtn alertbtn" id="btnAlert" type="button" hidden>⚠ <span id="alertN">0</span> críticos</button>
+  <button class="tbtn" id="btnReload" type="button">↻ Recargar</button>
+  <button class="tbtn green" id="btnExcel" type="button">⬇ Excel</button>
+</header>
+
+<div class="layout" id="layout">
+  <aside class="side" id="side" aria-label="Filtros">
+    <h2>Filtros <span id="fCount" style="color:#d7deec;letter-spacing:0;text-transform:none;font-weight:500"></span></h2>
+    <button class="clr" id="btnClear" type="button">↺ Limpiar filtros</button>
+    <div class="fs"><label for="fQ">Búsqueda libre</label><input id="fQ" type="search" placeholder="Unidad, nómina, operador, ruta…"></div>
+    <div id="msBox" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="fs"><label>Chips rápidos</label>
+      <div class="qchips">
+        <button class="qchip" type="button" data-q="rev" aria-pressed="false">Solo por revisar</button>
+        <button class="qchip" type="button" data-q="crit" aria-pressed="false">Críticos</button>
+        <button class="qchip" type="button" data-q="sin" aria-pressed="false">Sin asignación</button>
+      </div>
+    </div>
+    <p class="note">Periodo: corte actual. La SÁBANA es una fotografía al momento de la carga; no tiene histórico por fecha.</p>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+  <main>
+    <div id="alerts"></div>
+    <section class="kpis" id="kpis" aria-label="Indicadores"></section>
+    <div class="card">
+      <nav class="tabs" role="tablist" id="tabs"></nav>
+      <div id="view"></div>
+    </div>
+    <p class="foot" id="foot"></p>
+  </main>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="mbox">
+    <div class="mhead">
+      <button class="tbtn" id="mBack" type="button" hidden>← Volver</button>
+      <h4 id="mTitle">Detalle</h4>
+      <button class="tbtn green" id="mXls" type="button">⬇ Excel</button>
+      <button class="tbtn" id="mClose" type="button" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="mbody" id="mBody"></div>
+  </div>
+</div>
+<input type="file" id="fileIn" accept=".xlsx,.xls" hidden>
+
+<script>
+"use strict";
+/* =================== CONFIG (Lipu Mty) =================== */
+const CONFIG = {
+  UDN: "Lipu Monterrey",
+  SHEET_ID: "130_M-pzEUv2MJ937Msl7FcSf2WaRpqgv4CC8BCM4rjQ",
+  conector: "Google Sheets",
+  hojas: { sabana:["SABANA","A4:CD1000"], rh:["RH","A1:M3000"], trinomio:["TRINOMIO","A1:H3000"], contrato:["CONTRATO","A1:H300"] },
+  timeoutMs: 15000,
+  autoRecargaMin: 10,
+  requireSession: false,         /* true cuando exista el portal con login (valida sessionStorage.trx_user) */
+  portal: "index.html",
+  slug: "FlotaCartaOperativa",
+  umbrales: { cobertura:{ verde:98, ambar:85 }, sinLogueo:{ ambar:1, rojo:4 }, corralon:{ ambar:7, rojo:30 } }
+};
+const IN_CLAUDE = !!(window.claude && typeof window.claude.use === "function");
+if (CONFIG.requireSession && !IN_CLAUDE && location.protocol !== "file:") { try { if (!sessionStorage.getItem("trx_user")) location.href = CONFIG.portal; } catch(e){} }
+
+/* =================== Utilidades y formatos es-MX =================== */
+const $ = s => document.querySelector(s);
+const nf = new Intl.NumberFormat("es-MX");
+const money0 = new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:0});
+const money2 = new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",minimumFractionDigits:2,maximumFractionDigits:2});
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clean = s => String(s ?? "").replace(/\s+/g," ").trim();
+const norm = s => clean(s).toUpperCase();
+const nomina = s => { const t = clean(s).replace(/\.0+$/,""); return t === "0" ? "" : t; };
+const isVac = s => { const n = norm(s); return n === "" || n === "VACANTE"; };
+const num = s => { if (s === null || s === undefined || s === "") return null; if (typeof s === "number") return isFinite(s) ? s : null; const t = String(s).replace(/[$,\s]/g,""); if (t === "" || t === "-") return null; const v = Number(t); return isFinite(v) ? v : null; };
+const pad = n => String(n).padStart(2,"0");
+const fInt = v => v === null || v === undefined || v === "" ? "–" : nf.format(v);
+const fPct = (a, b) => (!b) ? "N/A" : (a / b * 100).toFixed(1) + "%";
+const fDate = d => d ? `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}` : "–";
+const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const fBadge = d => `${pad(d.getDate())} ${MESES[d.getMonth()]} ${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const stamp = () => { const d = new Date(); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`; };
+const nameKey = s => norm(s).split(" ").filter(Boolean).sort().join(" ");
+const isNoRuta = r => { const n = norm(r); return !n || n === "SIN RUTA" || n === "0"; };
+function parseDate(v, order){
+  if (v === null || v === undefined || v === "") return null;
+  if (typeof v === "number" || /^\d{5}(\.\d+)?$/.test(String(v))) { const d = new Date(Math.round((Number(v) - 25569) * 864e5)); return isNaN(d) ? null : new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); }
+  const m = String(v).trim().match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if (m) { let a=+m[1], b=+m[2], y=+m[3]; if (y < 100) y += 2000; let d, mo; if (order === "mdy") { mo=a; d=b; } else { d=a; mo=b; } if (mo > 12 && d <= 12) { const t=d; d=mo; mo=t; } const r = new Date(y, mo-1, d); return isNaN(r) ? null : r; }
+  const r = new Date(v); return isNaN(r) ? null : r;
+}
+
+/* =================== Carga de datos =================== */
+let MCP = null, SOURCE = "", ROWS_READ = 0;
+async function getMcp(){ if (!IN_CLAUDE) return null; try { return await window.claude.use("mcp"); } catch(e){ return null; } }
+function parseCSV(text){
+  const rows = []; let row = [], f = "", q = false;
+  for (let i = 0; i < text.length; i++) { const c = text[i];
+    if (q) { if (c === '"') { if (text[i+1] === '"') { f += '"'; i++; } else q = false; } else f += c; }
+    else if (c === '"') q = true; else if (c === ",") { row.push(f); f = ""; }
+    else if (c === "\n") { row.push(f); rows.push(row); row = []; f = ""; } else if (c !== "\r") f += c; }
+  if (f !== "" || row.length) { row.push(f); rows.push(row); }
+  return rows;
+}
+async function fetchT(url){
+  const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), CONFIG.timeoutMs);
+  try { const r = await fetch(url, {signal:ctl.signal, cache:"no-store"}); if (!r.ok) throw new Error("HTTP " + r.status); return await r.text(); } finally { clearTimeout(t); }
+}
+async function loadRange(key){
+  const [hoja, rango] = CONFIG.hojas[key];
+  if (MCP) {
+    const call = () => MCP.callTool(CONFIG.conector, "get_values", { spreadsheetId: CONFIG.SHEET_ID, range: `${hoja}!${rango}` },
+      { cache:{ staleTime:60000, gcTime:600000 }, signal: (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(90000) : undefined });
+    let res;
+    try { res = await call(); }
+    catch (e) { if (!(e && e.retryable)) throw e; await new Promise(r => setTimeout(r, Math.min(e.retryAfterMs || 1500, 8000) + Math.random()*500)); res = await call(); }
+    let p = res.payload; if (typeof p === "string") { try { p = JSON.parse(p); } catch(e){} }
+    return ((p && p.values) || []).map(r => r.map(c => c === null || c === undefined ? "" : String(c)));
+  }
+  if (IN_CLAUDE) throw { code:"no_mcp" };   /* dentro de Claude solo se puede leer por el conector */
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&headers=0&sheet=${encodeURIComponent(hoja)}&range=${rango}&t=${Date.now()}`;
+  try { return parseCSV(await fetchT(url)); } catch (e) { await new Promise(r => setTimeout(r, 1200)); return parseCSV(await fetchT(url)); }
+}
+
+/* =================== Modelo =================== */
+let RAW = null, M = null;
+function rowsFrom(vals, first){ let i = vals.findIndex(r => norm(r[0]) === norm(first)); if (i < 0) i = 0; return { header: vals[i] || [], rows: vals.slice(i+1).filter(r => r.some(c => clean(c) !== "")) }; }
+/* Escala de severidad del estándar */
+const ST = {
+  "EN CORRALÓN":           { sev:1, color:"#AE2F25", label:"En corralón" },
+  "FUERA":                 { sev:2, color:"#C9551F", label:"Fuera de operación (ODO)" },
+  "EN TALLER":             { sev:3, color:"#E07B39", label:"En taller" },
+  "ASIGNADA SIN OPERADOR": { sev:4, color:"#E9C34F", label:"Con ruta sin operador" },
+  "DISPONIBLE":            { sev:5, color:"#2563eb", label:"Disponible" },
+  "ASIGNADA":              { sev:6, color:"#5FA36F", label:"Asignada" }
+};
+const stKey = s => norm(s).startsWith("FUERA") ? "FUERA" : norm(s);
+const stInfo = s => ST[stKey(s)] || { sev:9, color:"#8a94ad", label:s || "–" };
+const pill = (txt, color) => `<span class="pill${color === "#E9C34F" ? " dk" : ""}" style="background:${color}">${esc(txt)}</span>`;
+const stPill = s => pill(s || "–", stInfo(s).color);
+const SEVC = { "Crítico":"#AE2F25", "Alto":"#E07B39", "Medio":"#E9C34F" };
+
+function build(raw){
+  const sb = rowsFrom(raw.sabana, "Vehicle ID");
+  const H = sb.header.map(clean);
+  const hi = n => H.findIndex(h => norm(h) === norm(n));
+  const odo = (n, def) => { const i = hi(n); return i >= 0 ? i : def; };   /* gviz borra encabezados de columnas numéricas: posición fija de respaldo */
+  const I = { marca:odo("Marca",41), modelo:odo("Modelo",42), asientos:odo("Número de asientos",43), anio:odo("Año del modelo",45), tipo:odo("Tipo de vehículo",47), status:odo("Status",49), eco:odo("Eco",51), placas:odo("Placas Federales",53), cli:odo("Cliente Principal",55), odom:odo("Último Odómetro",58) };
+  const g = (r, i) => i >= 0 ? clean(r[i]) : "";
+  const units = sb.rows.filter(r => clean(r[0])).map(r => {
+    const u = { kind:"unidad",
+      unidad:clean(r[0]), estatus:clean(r[1]), asig:num(r[2]) || 0, dup:clean(r[3]), planta:clean(r[4]), coord:clean(r[5]), nomina:nomina(r[6]), operador:clean(r[7]), ruta:clean(r[8]),
+      comentarios:clean(r[9]) === "0" ? "" : clean(r[9]), gerente:clean(r[10]), rutas:clean(r[11]), operadores:clean(r[12]),
+      fIngreso:parseDate(r[13],"dmy"), antigOp:clean(r[14]), puesto:clean(r[15]), fUltLog:parseDate(r[16],"dmy"), noLog:num(r[17]), tipoRh:clean(r[18]), obsRh:clean(r[19]),
+      rp:clean(r[20]), antMax:num(r[21]), contrato:num(r[22]), antUnidad:num(r[23]), cumple:clean(r[24]),
+      falla:clean(r[25]), familia:clean(r[26]), clasif:clean(r[27]), refaccion:clean(r[28]), sic:clean(r[29]), fCompromiso:clean(r[30]), costo:num(r[31]),
+      cPlanta:clean(r[32]), cFecha:parseDate(r[33],"dmy"), cDias:num(r[34]), cMotivo:clean(r[35]), cStatus:clean(r[36]), cMonto:num(r[37]), obs:clean(r[81]),
+      marca:g(r,I.marca), modelo:g(r,I.modelo), asientos:g(r,I.asientos), anio:g(r,I.anio), tipoVeh:g(r,I.tipo), statusOdo:g(r,I.status), eco:g(r,I.eco), placas:g(r,I.placas), cliOdo:g(r,I.cli), odometro:num(g(r,I.odom)),
+      _raw:r };
+    if (isVac(u.operador)) u.operador = u.asig ? "VACANTE" : "";
+    u.sev = stInfo(u.estatus).sev;
+    return u;
+  });
+  const odoSet = new Set(units.map(u => u.unidad));
+
+  const tr = rowsFrom(raw.trinomio, "PLANTA").rows.map(r => ({ planta:clean(r[0]), coord:clean(r[1]), nomina:nomina(r[2]), nombre:clean(r[3]), ruta:clean(r[4]), unidad:nomina(r[5]), comentarios:clean(r[6]), gerente:clean(r[7]) })).filter(t => t.planta || t.nombre || t.unidad);
+  const rh = rowsFrom(raw.rh, "Nómina").rows.map(r => ({ nomina:nomina(r[0]), nombre:clean(r[1]), fIngreso:parseDate(r[2],"mdy"), antig:clean(r[3]), puesto:clean(r[4]), fUltLog:parseDate(r[5],"mdy"), noLog:num(r[6]), plantaRh:clean(r[7]), jefe:clean(r[8]),
+    tipo:(clean(r[11]) === "0" || clean(r[11]) === "") ? "Activo" : clean(r[11]).replace(/^\d+\s*\)\s*/,""), obs:clean(r[12]) === "0" ? "" : clean(r[12]) })).filter(x => x.nomina || x.nombre);
+  const rhSet = new Set(rh.map(x => x.nomina).filter(Boolean));
+  /* Conciliación por unidad (ODO vs asignadas con planta, ruta y operador) */
+  units.forEach(u => {
+    const k = stKey(u.estatus);
+    if (u.asig > 0) u.conc = !u.planta ? "Con unidad en trinomio sin planta" : isNoRuta(u.ruta) ? "Con operador sin ruta" : isVac(u.operador) ? "Con ruta sin operador" : "Asignada completa";
+    else u.conc = k === "DISPONIBLE" ? "Sin asignación · disponible" : k === "EN TALLER" ? "Sin asignación · en taller" : k === "EN CORRALÓN" ? "Sin asignación · en corralón" : k === "FUERA" ? "Sin asignación · fuera de operación" : "Sin asignación · otro estatus";
+  });
+  /* Todos los comentarios de TRINOMIO por unidad */
+  const triByUnit = new Map();
+  tr.forEach(t => { if (!t.unidad) return; const c = clean(t.comentarios); if (c && c !== "0") { const a = triByUnit.get(t.unidad) || []; if (!a.includes(c)) a.push(c); triByUnit.set(t.unidad, a); } });
+  units.forEach(u => { u.comTri = (triByUnit.get(u.unidad) || []).join(" / "); });
+  const con = rowsFrom(raw.contrato, "RP").rows.map(r => ({ rp:clean(r[0]), planta:clean(r[1]), antMax:num(r[2]), contrato:num(r[3]), turnos:clean(r[5]), frecuencia:clean(r[6]), operacion:clean(r[7]) })).filter(c => c.planta);
+  const conMap = new Map(con.map(c => [norm(c.planta), c]));
+  units.forEach(u => { if (!u.rp && u.planta) u.rp = (conMap.get(norm(u.planta)) || {}).rp || ""; });
+
+  /* Operadores sin unidad */
+  const triByNom = new Map(); tr.forEach(t => { if (!t.nomina) return; if (!triByNom.has(t.nomina)) triByNom.set(t.nomina, []); triByNom.get(t.nomina).push(t); });
+  const asignados = new Set(tr.filter(t => t.nomina && t.unidad && !isVac(t.nombre)).map(t => t.nomina));
+  const ops = rh.filter(x => x.nomina && !asignados.has(x.nomina)).map(x => {
+    const t = (triByNom.get(x.nomina) || [])[0]; const planta = t ? t.planta : norm(x.plantaRh);
+    return { kind:"operador", ...x, sinLog: x.noLog === null ? null : Math.abs(x.noLog), operador:x.nombre,
+      enTrinomio: t ? "Sí, sin unidad" : "No", trinomioRuta: t ? [t.ruta, t.comentarios].filter(Boolean).join(" · ") : "", ruta: t ? t.ruta : "",
+      planta, coord: t ? t.coord : "", gerente: t ? t.gerente : "", rp: (conMap.get(norm(planta)) || {}).rp || "" };
+  });
+
+  /* Trinomio de más */
+  const nomCount = new Map(); tr.forEach(t => { if (t.nomina && !isVac(t.nombre)) { const a = nomCount.get(t.nomina) || []; a.push(t); nomCount.set(t.nomina, a); } });
+  const extra = [];
+  tr.forEach(t => {
+    const mot = [];
+    if (!isVac(t.nombre)) {
+      if (!t.nomina) mot.push("Sin nómina"); else if (!rhSet.has(t.nomina)) mot.push("Nómina no existe en RH");
+      const same = nomCount.get(t.nomina) || [];
+      if (t.nomina && same.length > 1) { const o = same.filter(x => x !== t);
+        if (o.some(x => nameKey(x.nombre) === nameKey(t.nombre) && x.unidad === t.unidad)) mot.push("Registro repetido");
+        else if (o.some(x => nameKey(x.nombre) !== nameKey(t.nombre))) mot.push("Nómina usada por otra persona");
+        else mot.push("Operador en 2+ unidades"); }
+    }
+    if (t.unidad && !odoSet.has(t.unidad)) mot.push("Unidad no existe en ODO");
+    if (mot.length) extra.push({ kind:"trinomio", ...t, operador:t.nombre, motivo:mot.join(" · "), rp:(conMap.get(norm(t.planta)) || {}).rp || "", sev: mot.some(m => /RH|ODO|Sin nómina|otra persona/.test(m)) ? 1 : 2 });
+  });
+
+  /* Planta vs contrato */
+  const pl = new Map();
+  const ensure = p => { const k = norm(p); if (!k) return null; if (!pl.has(k)) { const c = conMap.get(k); pl.set(k, { kind:"planta", planta: c ? c.planta : clean(p), rp: c ? c.rp : "", contrato: c ? c.contrato : null, antMax: c ? c.antMax : null, operacion: c ? c.operacion : "", asignadas:0, conOp:0, sinOp:0, taller:0, noCumple:0, ger:new Map(), coords:new Set() }); } return pl.get(k); };
+  con.forEach(c => ensure(c.planta));
+  /* Comparativo por UNIDAD: unidades distintas que TRINOMIO asigna a cada planta, con o sin operador */
+  const unitMap0 = new Map(units.map(u => [u.unidad, u]));
+  tr.forEach(t => {
+    if (!t.unidad || !t.planta) return;
+    const p = ensure(t.planta); if (!p.uMap) p.uMap = new Map();
+    const e = p.uMap.get(t.unidad) || { unidad:t.unidad, u:unitMap0.get(t.unidad), conOp:false, rutas:[], ops:[] };
+    if (!isVac(t.nombre)) { e.conOp = true; e.ops.push(t.nombre); }
+    if (t.ruta && !e.rutas.includes(t.ruta)) e.rutas.push(t.ruta);
+    p.uMap.set(t.unidad, e);
+    if (t.gerente) p.ger.set(t.gerente, (p.ger.get(t.gerente) || 0) + 1);
+    if (t.coord) p.coords.add(norm(t.coord));
+  });
+  pl.forEach(p => {
+    const all = p.uMap ? [...p.uMap.values()] : [];
+    const es = all.filter(e => e.u);
+    p.uList = all; p.noOdo = all.length - es.length;
+    p.asignadas = es.length;
+    p.conOp = es.filter(e => e.conOp).length; p.sinOp = p.asignadas - p.conOp;
+    p.taller = es.filter(e => /TALLER|CORRAL|FUERA/.test(stKey(e.u.estatus))).length;
+    p.operativas = p.asignadas - p.taller;
+    p.noCumple = es.filter(e => p.antMax !== null && e.u.antUnidad !== null && e.u.antUnidad > p.antMax).length;
+  });
+  const plantas = [...pl.values()].map(p => {
+    const diff = p.contrato === null ? null : p.asignadas - p.contrato;
+    const gerente = [...p.ger.entries()].sort((a,b) => b[1]-a[1]).map(x => x[0])[0] || "Sin gerente";
+    const estado = p.contrato === null ? "Sin contrato" : diff === 0 ? "Completa" : diff < 0 ? `Faltan ${-diff}` : `Excedente ${diff}`;
+    const sev = p.contrato === null ? 3 : diff < 0 ? 1 : diff > 0 ? 2 : 5;
+    return { ...p, gerente, coord:[...p.coords].join(" / "), diff, estado, sev, cobertura: p.contrato ? p.asignadas / p.contrato * 100 : null };
+  });
+
+  /* Por revisar (terapia intensiva) */
+  const disp = units.filter(u => stKey(u.estatus) === "DISPONIBLE").length;
+  const activosSin = ops.filter(o => norm(o.tipo) === "ACTIVO").length;
+  const rev = [];
+  const add = o => { rev.push({ kind:"revisar", ...o }); if (o.src) { o.src._rev = true; if (o.sev === "Crítico") o.src._crit = true; } };
+  units.forEach(u => {
+    const k = stKey(u.estatus), resp = [u.gerente, u.coord].filter(Boolean).join(" → ");
+    if (k === "EN CORRALÓN") add({ sev:"Crítico", tipo:"Unidad en corralón", ref:u.unidad, planta:u.cPlanta || u.planta, gerente:u.gerente, coord:u.coord, rp:u.rp, unidad:u.unidad,
+      detalle:`${u.cMotivo || "Sin motivo"} · ${fInt(u.cDias)} días · ${u.cStatus}`, accion:"Dar seguimiento a la liberación y cubrir la ruta con una unidad disponible", responsable: resp || "Siniestros / Gerencia", src:u });
+    if (u.asig > 0 && u.cumple === "NO CUMPLE") add({ sev:"Alto", tipo:"No cumple antigüedad de contrato", ref:u.unidad, planta:u.planta, gerente:u.gerente, coord:u.coord, rp:u.rp, unidad:u.unidad, operador:u.operador, ruta:u.ruta,
+      detalle:`Modelo ${u.anio} · ${fInt(u.antUnidad)} años vs máx. ${fInt(u.antMax)}`, accion:"Sustituir por una unidad que cumpla la antigüedad del contrato", responsable:resp, src:u });
+    if (k === "ASIGNADA SIN OPERADOR") add({ sev:"Alto", tipo:"Ruta sin operador", ref:u.unidad, planta:u.planta, gerente:u.gerente, coord:u.coord, rp:u.rp, unidad:u.unidad, ruta:u.ruta,
+      detalle:`Ruta ${u.ruta || "–"}`, accion:`Asignar un operador activo sin unidad (${nf.format(activosSin)} disponibles en RH)`, responsable:resp, src:u });
+    if (u.asig > 0 && k === "EN TALLER") add({ sev:"Alto", tipo:"Unidad con ruta en taller", ref:u.unidad, planta:u.planta, gerente:u.gerente, coord:u.coord, rp:u.rp, unidad:u.unidad, operador:u.operador, ruta:u.ruta,
+      detalle:`${u.falla || "Sin falla capturada"}${u.costo !== null ? " · " + money0.format(u.costo) : ""}`, accion:"Cubrir la ruta con una unidad disponible mientras sale de taller", responsable:resp, src:u });
+    if (u.asig > 0 && k === "FUERA") add({ sev:"Alto", tipo:"Asignada pero fuera de operación en ODO", ref:u.unidad, planta:u.planta, gerente:u.gerente, coord:u.coord, rp:u.rp, unidad:u.unidad, operador:u.operador, ruta:u.ruta,
+      detalle:`Status ODO: ${u.statusOdo}`, accion:"Validar el estatus en ODO o reasignar la ruta", responsable:resp, src:u });
+    if (u.asig > 1) add({ sev:"Medio", tipo:"Unidad en 2+ rutas", ref:u.unidad, planta:u.planta, gerente:u.gerente, coord:u.coord, rp:u.rp, unidad:u.unidad, ruta:u.rutas,
+      detalle:`${u.rutas} · ${u.operadores}`, accion:"Confirmar si la unidad es compartida o corregir el trinomio", responsable:resp, src:u });
+  });
+  plantas.forEach(p => {
+    if (p.diff !== null && p.diff < 0) add({ sev:"Crítico", tipo:"Planta con faltante de unidades", ref:p.planta, planta:p.planta, gerente:p.gerente, rp:p.rp, coord:p.coord,
+      detalle:`Contrato ${fInt(p.contrato)} · asignadas ${fInt(p.asignadas)} · cobertura ${fPct(p.asignadas, p.contrato)}`, accion:`Asignar ${-p.diff} unidad(es); hay ${nf.format(disp)} disponibles en la flota`, responsable:[p.gerente, p.rp].filter(Boolean).join(" / "), src:p });
+    if (p.diff !== null && p.diff > 0) add({ sev:"Medio", tipo:"Planta con excedente", ref:p.planta, planta:p.planta, gerente:p.gerente, rp:p.rp, coord:p.coord,
+      detalle:`Contrato ${fInt(p.contrato)} · asignadas ${fInt(p.asignadas)}`, accion:`Liberar ${p.diff} unidad(es) o validar ampliación del contrato`, responsable:[p.gerente, p.rp].filter(Boolean).join(" / "), src:p });
+  });
+  extra.forEach(t => { if (t.sev === 1) add({ sev:"Alto", tipo:"Trinomio: " + t.motivo, ref:t.nomina || t.unidad, planta:t.planta, gerente:t.gerente, coord:t.coord, rp:t.rp, unidad:t.unidad, operador:t.nombre, ruta:t.ruta,
+      detalle:`${t.nombre} · ${t.ruta} · unidad ${t.unidad || "0"}`, accion: /ODO/.test(t.motivo) ? "Validar el número de unidad contra ODO" : "Validar la nómina con RH y corregir el trinomio", responsable:t.coord || t.gerente, src:t }); });
+  ops.forEach(o => {
+    const t = norm(o.tipo);
+    if ((o.sinLog || 0) >= CONFIG.umbrales.sinLogueo.rojo && !/VACACION|PERMISO|INCAPACIDAD/.test(t))
+      add({ sev:"Alto", tipo:"Operador sin unidad y sin logueo", ref:o.nomina, planta:o.planta, gerente:o.gerente, coord:o.coord, rp:o.rp, operador:o.nombre,
+        detalle:`${fInt(o.sinLog)} días sin logueo · ${o.tipo}`, accion: /BAJA/.test(t) ? "Concluir el proceso de baja" : "Contactar al operador y definir reincorporación o baja", responsable:o.jefe || o.coord, src:o });
+    else if (t === "ACTIVO") add({ sev:"Medio", tipo:"Operador activo sin unidad", ref:o.nomina, planta:o.planta, gerente:o.gerente, coord:o.coord, rp:o.rp, operador:o.nombre,
+        detalle:`${o.puesto} · ${o.antig}`, accion:"Asignar a una ruta sin operador o a una unidad disponible", responsable:o.jefe || o.coord, src:o });
+  });
+  const so = { "Crítico":1, "Alto":2, "Medio":3 };
+  rev.forEach(r => { r.sevN = so[r.sev]; r._rev = true; r._crit = r.sev === "Crítico"; r._sin = /sin|faltante/i.test(r.tipo); });
+  units.forEach(u => { u._sin = u.asig === 0 || isVac(u.operador); });
+  ops.forEach(o => { o._sin = true; });
+  plantas.forEach(p => { p._sin = p.sinOp > 0 || (p.diff !== null && p.diff < 0); });
+  /* RH vs TRINOMIO: una fila por persona de RH + asignaciones de trinomio sin persona válida */
+  const rhx = [];
+  const comOf = rows => [...new Set(rows.map(t => clean(t.comentarios)).filter(c => c && c !== "0"))].join(" / ");
+  rh.forEach(x => {
+    if (!x.nomina) return;
+    const rows = triByNom.get(x.nomina) || [];
+    const withU = rows.filter(t => t.unidad && !isVac(t.nombre));
+    const act = norm(x.tipo) === "ACTIVO";
+    const t0 = withU[0] || rows[0];
+    const diag = withU.length > 1 ? (act ? "Asignado en 2+ unidades" : "Asignado con incidencia RH")
+      : withU.length === 1 ? (act ? "Asignado y activo" : "Asignado con incidencia RH")
+      : rows.length ? (act ? "Activo en trinomio sin unidad" : "Con incidencia, en trinomio sin unidad")
+      : (act ? "Activo, no aparece en trinomio" : "Con incidencia, no aparece en trinomio");
+    const withUodo = withU.filter(t => odoSet.has(t.unidad));
+    const conc = withUodo.some(t => t.planta && !isNoRuta(t.ruta)) ? "Asignado completo"
+      : withUodo.length ? "Con unidad sin ruta o planta"
+      : withU.length ? "Asignado a unidad que no existe en ODO"
+      : rows.length ? (act ? "En trinomio sin unidad · activo" : "En trinomio sin unidad · con incidencia")
+      : (act ? "No aparece en trinomio · activo" : "No aparece en trinomio · con incidencia");
+    rhx.push({ kind:"rhx", conc, nomina:x.nomina, nombre:x.nombre, operador:x.nombre, tipo:x.tipo, sinLog: x.noLog === null ? null : Math.abs(x.noLog), puesto:x.puesto, jefe:x.jefe, antig:x.antig, obs:x.obs,
+      triEst: withU.length ? "Con unidad" : rows.length ? "En trinomio sin unidad" : "No está en trinomio", nUnid: withU.length, activo: act, diag,
+      unidad: withU.map(t => t.unidad).join(" / "), ruta: (withU.length ? withU : rows).map(t => t.ruta).filter(Boolean).join(" / "),
+      planta: t0 ? t0.planta : norm(x.plantaRh), coord: t0 ? t0.coord : "", gerente: t0 ? t0.gerente : "", comTri: comOf(rows) });
+  });
+  /* Huecos del trinomio (contexto para el balance; no son personas de RH) */
+  const triHuecos = [];
+  tr.forEach(t => {
+    if (!t.unidad) return;
+    const base = { kind:"rhx", nomina:t.nomina, unidad:t.unidad, ruta:t.ruta, planta:t.planta, coord:t.coord, gerente:t.gerente, comTri: comOf([t]), sinLog:null, obs:"" };
+    if (isVac(t.nombre)) triHuecos.push({ ...base, nombre:"VACANTE", operador:"", tipo:"–", triEst:"Ruta vacante", diag:"Ruta vacante" });
+    else if (!t.nomina || !rhSet.has(t.nomina)) triHuecos.push({ ...base, nombre:t.nombre, operador:t.nombre, tipo:"No está en RH", triEst:"Con unidad", diag:"Asignado sin estar en RH" });
+  });
+  [...rhx, ...triHuecos].forEach(r => { r.rp = (conMap.get(norm(r.planta)) || {}).rp || ""; const D = DIAG[r.diag]; r._sin = r.triEst !== "Con unidad"; r._rev = D.sev !== "OK" && D.sev !== "Reserva"; r._crit = D.sev === "Crítico" || D.sev === "Alto"; });
+
+  /* Comentarios de TRINOMIO */
+  const unitMap = new Map(units.map(u => [u.unidad, u]));
+  const coments = tr.filter(t => { const c = clean(t.comentarios); return c && c !== "0"; }).map(t => { const u = unitMap.get(t.unidad);
+    return { kind:"comentario", ...t, operador:t.nombre, rp:(conMap.get(norm(t.planta)) || {}).rp || "", estatusU: u ? u.estatus : (t.unidad ? "No existe en ODO" : "Sin unidad") }; });
+  return { units, tr, rh, con, ops, extra, coments, rhx, triHuecos, plantas, rev, odoSet, rhSet };
+}
+
+/* =================== Estado y filtros (orden del estándar) =================== */
+const FILTERS = [
+  { k:"planta",   l:"Cliente / Planta", get:r => norm(r.planta) },
+  { k:"gerente",  l:"Gerente",          get:r => clean(r.gerente) },
+  { k:"rp",       l:"RP (contrato)",    get:r => clean(r.rp) },
+  { k:"coord",    l:"Coordinador",      get:r => norm(r.coord) },
+  { k:"ruta",     l:"Ruta",             get:r => norm(r.ruta) },
+  { k:"operador", l:"Operador",         get:r => isVac(r.operador) ? "" : norm(r.operador) },
+  { k:"unidad",   l:"Unidad",           get:r => clean(r.unidad) },
+  { k:"estatus",  l:"Estatus / Criticidad", get:r => r.kind === "unidad" ? stInfo(r.estatus).label : r.kind === "operador" ? r.tipo : r.kind === "revisar" ? r.sev : r.kind === "planta" ? r.estado : r.kind === "trinomio" ? r.motivo : r.kind === "comentario" ? stInfo(r.estatusU).label : r.kind === "rhx" ? r.diag : "" }
+];
+const S = { tab:"revisar", f:{}, q:"", quick:{ rev:false, crit:false, sin:false }, chip:{}, sort:{}, open:{} };
+FILTERS.forEach(f => S.f[f.k] = new Set());
+function readHash(){
+  const h = location.hash.slice(1); if (!h) return;
+  const [tab, ...kv] = h.split("&"); if (tab) S.tab = tab;
+  kv.forEach(p => { const [k, v] = p.split("="); if (S.f[k] && v) S.f[k] = new Set(decodeURIComponent(v).split("|")); else if (k === "q" && v) S.q = decodeURIComponent(v); });
+}
+function writeHash(){
+  let h = "#" + S.tab;
+  if (!IN_CLAUDE) { FILTERS.forEach(f => { if (S.f[f.k].size) h += `&${f.k}=${encodeURIComponent([...S.f[f.k]].join("|"))}`; }); if (S.q) h += "&q=" + encodeURIComponent(S.q); }
+  try { history.replaceState(null, "", h); } catch(e){}
+}
+readHash();
+(function initSide(){ let c = null; try { c = localStorage.getItem("trx_sidebar_collapsed"); } catch(e){} if (c === "1" || innerWidth <= 860) $("#layout").classList.add("collapsed"); })();
+
+const searchText = r => norm([r.unidad, r.nomina, r.operador, r.nombre, r.ruta, r.rutas, r.planta, r.coord, r.operadores, r.motivo, r.placas, r.tipo, r.ref, r.comentarios, r.obs, r.comTri, r.diag].join(" "));
+function pass(r, skipKey){
+  for (const f of FILTERS) { if (f.k === skipKey) continue; const sel = S.f[f.k]; if (!sel.size) continue; const v = f.get(r); if (!v) return false;
+    if (f.k === "coord" && r.kind === "planta") { if (!v.split(" / ").some(x => sel.has(x))) return false; continue; }
+    if (!sel.has(v)) return false; }
+  if (S.q && !searchText(r).includes(norm(S.q))) return false;
+  if (S.quick.rev && !r._rev) return false;
+  if (S.quick.crit && !r._crit) return false;
+  if (S.quick.sin && !r._sin) return false;
+  return true;
+}
+const activeCount = () => FILTERS.reduce((a,f) => a + S.f[f.k].size, 0) + (S.q ? 1 : 0) + Object.values(S.quick).filter(Boolean).length;
+
+/* =================== Vistas =================== */
+const V = {};
+V.revisar = { label:"Por revisar", ic:"⚠", rows:() => M.rev, explain:"Terapia intensiva: lo que hoy está en rojo, con responsable (gerente → coordinador) y acción sugerida. De peor a mejor, agrupado por gerente.",
+  chips:[["","Todos"],["Crítico","Crítico"],["Alto","Alto"],["Medio","Medio"]], chipOf:r => r.sev, sort:{k:"sev",dir:1}, sortLabel:"criticidad",
+  group:{ by:r => r.gerente || "Sin gerente", label:"Gerente" },
+  cols:[
+    { k:"sev", l:"Criticidad", h:r => pill(r.sev, SEVC[r.sev]), s:r => r.sevN },
+    { k:"tipo", l:"Situación", b:true },
+    { k:"ref", l:"Unidad / nómina / planta" },
+    { k:"planta", l:"Planta" },
+    { k:"coord", l:"Coordinador" },
+    { k:"detalle", l:"Detalle" },
+    { k:"accion", l:"Acción sugerida", w:true },
+    { k:"responsable", l:"Responsable" } ] };
+V.resumen = { label:"Resumen", ic:"📊", chart:true };
+V.unidades = { label:"Unidades sin asignar", ic:"🚌", rows:() => M.units.filter(u => stKey(u.estatus) !== "ASIGNADA"),
+  explain:"Unidades de ODO que hoy no ruedan con operador: sin ruta en TRINOMIO, en taller, en corralón, fuera de operación en ODO o con ruta pero sin operador (VACANTE).",
+  chips:[["","Todas"],["DISPONIBLE","Disponibles"],["EN TALLER","En taller"],["EN CORRALÓN","Corralón"],["FUERA","Fuera de operación"],["ASIGNADA SIN OPERADOR","Con ruta sin operador"]], chipOf:u => stKey(u.estatus),
+  sort:{k:"estatus",dir:1}, sortLabel:"criticidad",
+  cols:[
+    { k:"unidad", l:"Unidad", b:true },
+    { k:"estatus", l:"Estatus", h:u => stPill(u.estatus), s:u => u.sev },
+    { k:"planta", l:"Planta (trinomio)", v:u => u.planta || "Sin ruta" },
+    { k:"ruta", l:"Ruta" },
+    { k:"comTri", l:"Comentarios trinomio", w:true },
+    { k:"marca", l:"Marca / modelo", v:u => [u.marca, u.modelo.replace(u.marca + "/","")].filter(Boolean).join(" ") },
+    { k:"anio", l:"Año", n:true },
+    { k:"antUnidad", l:"Antig. (años)", n:true },
+    { k:"odometro", l:"Últ. odómetro", n:true, h:u => fInt(u.odometro) },
+    { k:"falla", l:"Falla / estatus taller" },
+    { k:"familia", l:"Familia" },
+    { k:"costo", l:"Costo ref.", n:true, h:u => u.costo === null ? "–" : money2.format(u.costo) },
+    { k:"cDias", l:"Días corralón", n:true, h:u => u.cDias === null ? "–" : `<span class="${u.cDias >= CONFIG.umbrales.corralon.rojo ? "neg" : u.cDias >= CONFIG.umbrales.corralon.ambar ? "pos" : ""}">${nf.format(u.cDias)}</span>` },
+    { k:"cMotivo", l:"Motivo corralón" },
+    { k:"statusOdo", l:"Status ODO" } ] };
+V.operadores = { label:"Operadores sin unidad", ic:"👤", rows:() => M.ops,
+  explain:"Operadores de RH que no tienen unidad en TRINOMIO (no aparecen, o aparecen con unidad 0 / SIN RUTA). Ordenado por días sin loguearse.",
+  chips:[["","Todos"],["Activo","Activos"],["Ausentismo","Ausentismo"],["Vacaciones","Vacaciones"],["Proceso de Baja","Proceso de baja"],["Permiso","Permisos"],["Incapacidad","Incapacidad"],["Otras Causas","Otras causas"]],
+  chipOf:o => o.tipo, chipMatch:(v,c) => norm(v).includes(norm(c)), sort:{k:"sinLog",dir:-1}, sortLabel:"días sin logueo",
+  cols:[
+    { k:"nomina", l:"Nómina", b:true },
+    { k:"nombre", l:"Operador" },
+    { k:"tipo", l:"Situación RH", h:o => { const t = norm(o.tipo); return pill(o.tipo, t === "ACTIVO" ? "#5FA36F" : /BAJA/.test(t) ? "#AE2F25" : /AUSENT/.test(t) ? "#E07B39" : "#E9C34F"); } },
+    { k:"sinLog", l:"Días sin logueo", n:true, h:o => o.sinLog === null ? "–" : `<span class="${o.sinLog >= CONFIG.umbrales.sinLogueo.rojo ? "neg" : o.sinLog >= CONFIG.umbrales.sinLogueo.ambar ? "pos" : "okt"}">${nf.format(o.sinLog)}</span>` },
+    { k:"fUltLog", l:"Últ. logueo", h:o => fDate(o.fUltLog), s:o => o.fUltLog ? o.fUltLog.getTime() : 0 },
+    { k:"enTrinomio", l:"¿En trinomio?" },
+    { k:"trinomioRuta", l:"Ruta / comentario trinomio" },
+    { k:"planta", l:"Planta" },
+    { k:"jefe", l:"Jefe (RH)" },
+    { k:"puesto", l:"Puesto" },
+    { k:"antig", l:"Antigüedad" },
+    { k:"obs", l:"Observaciones", w:true } ] };
+V.extra = { label:"Trinomio de más", ic:"⛔", rows:() => M.extra,
+  explain:"Registros de TRINOMIO que sobran o no cuadran: nómina que no está en RH, unidad que no existe en ODO, nómina usada por dos personas distintas y renglones repetidos.",
+  chips:[["","Todos"],["RH","No existe en RH"],["ODO","Unidad no existe en ODO"],["otra persona","Nómina de otra persona"],["repetido","Registro repetido"],["Sin nómina","Sin nómina"]],
+  chipOf:r => r.motivo, chipMatch:(v,c) => norm(v).includes(norm(c)), sort:{k:"motivo",dir:1}, sortLabel:"criticidad",
+  group:{ by:r => r.planta || "Sin planta", label:"Planta" },
+  cols:[
+    { k:"motivo", l:"Motivo", h:r => pill(r.motivo, r.sev === 1 ? "#AE2F25" : "#E9C34F"), s:r => r.sev },
+    { k:"planta", l:"Planta" },
+    { k:"coord", l:"Coordinador" },
+    { k:"nomina", l:"Nómina", b:true },
+    { k:"nombre", l:"Operador" },
+    { k:"ruta", l:"Ruta" },
+    { k:"unidad", l:"Unidad" },
+    { k:"comentarios", l:"Comentarios" } ] };
+/* Comentarios / análisis: columna OBSERVACIÓN / ANÁLISIS DE ASIGNACIÓN (CD) de la SÁBANA */
+const obsTipo = u => { const o = norm(u.obs); if (!o) return "Sin análisis"; if (/^CUMPLE ASIGNACI/.test(o)) return "Cumple"; if (/^NO CUMPLE( ·|$)/.test(o)) return "No cumple"; if (/^SIN ASIGNACI/.test(o)) return "Sin asignación"; return "Comentario trinomio"; };
+const TIPOC = { "Comentario trinomio":"#0891b2", "No cumple":"#AE2F25", "Sin asignación":"#2563eb", "Cumple":"#5FA36F", "Sin análisis":"#8a94ad" };
+const TIPON = { "Comentario trinomio":1, "No cumple":2, "Sin asignación":3, "Cumple":4, "Sin análisis":5 };
+function obsSummary(){
+  const us = M.units.filter(u => pass(u)); const tot = us.length; const m = new Map();
+  us.forEach(u => { const k = u.obs || "Sin análisis"; if (!m.has(k)) m.set(k, { kind:"resumen", obs:k, tipo:obsTipo(u), units:[] }); m.get(k).units.push(u); });
+  return [...m.values()].map(r => { const pls = new Map(); r.units.forEach(u => { const p = u.planta || "Sin planta"; pls.set(p, (pls.get(p) || 0) + 1); });
+    const top = [...pls.entries()].sort((a,b) => b[1]-a[1]);
+    return { ...r, n:r.units.length, pct: tot ? r.units.length / tot * 100 : null, nPlantas:pls.size, plantasTxt: top.slice(0,3).map(([p,n]) => `${p} (${n})`).join(", ") + (top.length > 3 ? ` +${top.length - 3}` : ""), sevN:TIPON[r.tipo] }; });
+}
+V.coment = { label:"Comentarios trinomio", ic:"💬", summary:true, base:() => M.units, rows:() => obsSummary(),
+  explain:"Resumen de la columna OBSERVACIÓN / ANÁLISIS DE ASIGNACIÓN de la SÁBANA: si TRINOMIO trae comentario se muestra tal cual; si viene en blanco, el análisis de unidad, planta, ruta y operador. Clic en un renglón para ver el desglose por unidad.",
+  chips:[["","Todos"],["Comentario trinomio","Comentarios de trinomio"],["No cumple","No cumple"],["Sin asignación","Sin asignación"],["Cumple","Cumple"]],
+  chipOf:r => r.tipo, sort:{k:"n",dir:-1}, sortLabel:"unidades",
+  cols:[
+    { k:"obs", l:"Comentario / análisis", w:true, b:true },
+    { k:"tipo", l:"Tipo", h:r => pill(r.tipo, TIPOC[r.tipo]), s:r => r.sevN },
+    { k:"n", l:"Unidades", n:true },
+    { k:"pct", l:"% de la flota", n:true, h:r => r.pct === null ? "N/A" : r.pct.toFixed(1) + "%" },
+    { k:"nPlantas", l:"Plantas", n:true },
+    { k:"plantasTxt", l:"Principales plantas", w:true } ] };
+V.desglose = { label:"Desglose", ic:"📋", rows:() => M.units, sort:{k:"planta",dir:1}, sortLabel:"planta",
+  cols:[
+    { k:"unidad", l:"Unidad", b:true },
+    { k:"estatus", l:"Estatus", h:u => stPill(u.estatus), s:u => u.sev },
+    { k:"planta", l:"Planta", v:u => u.planta || "Sin ruta" },
+    { k:"ruta", l:"Ruta" },
+    { k:"nomina", l:"Nómina", v:u => isVac(u.operador) ? "" : u.nomina },
+    { k:"operador", l:"Operador" },
+    { k:"coord", l:"Coordinador" },
+    { k:"gerente", l:"Gerente" },
+    { k:"cumple", l:"Cumple contrato", h:u => u.cumple ? pill(u.cumple, u.cumple === "CUMPLE" ? "#5FA36F" : u.cumple === "NO CUMPLE" ? "#AE2F25" : "#8a94ad") : "–" },
+    { k:"conc", l:"Conciliación" },
+    { k:"obs", l:"Comentario / análisis", w:true } ] };
+/* RH vs Trinomio */
+const DIAG = {
+  "Asignado con incidencia RH":            { n:1, c:"#E07B39", sev:"Alto",    lect:"Tiene unidad en trinomio, pero RH lo reporta con vacaciones, ausentismo, permiso, incapacidad o baja: la ruta no está cubierta en la práctica.", acc:"Confirmar quién cubre la ruta mientras dura la incidencia." },
+  "Activo, no aparece en trinomio":        { n:2, c:"#C9551F", sev:"Alto",    lect:"Activo en RH, pero el trinomio no lo considera en ningún renglón.", acc:"Incluirlo en el trinomio: asignarle ruta o registrarlo como reserva." },
+  "Con incidencia, no aparece en trinomio":{ n:3, c:"#E9C34F", sev:"Medio",   lect:"En RH con incidencia y fuera del trinomio.", acc:"Dar seguimiento a la incidencia: reincorporación o baja." },
+  "Con incidencia, en trinomio sin unidad":{ n:4, c:"#EDA35C", sev:"Medio",   lect:"En RH con incidencia; el trinomio lo tiene sin unidad (SIN RUTA / unidad 0).", acc:"Dar seguimiento a la incidencia: reincorporación o baja." },
+  "Asignado en 2+ unidades":               { n:5, c:"#E9C34F", sev:"Medio",   lect:"Activo en RH con más de una unidad en trinomio.", acc:"Confirmar si cubre dos rutas o corregir el trinomio." },
+  "Activo en trinomio sin unidad":         { n:6, c:"#2563eb", sev:"Reserva", lect:"Activo en RH; el trinomio lo tiene sin unidad (SIN RUTA / unidad 0): reserva disponible.", acc:"Asignar a rutas vacantes o a cubrir incidencias." },
+  "Asignado y activo":                     { n:7, c:"#5FA36F", sev:"OK",      lect:"Activo en RH con una unidad en trinomio: cuadra.", acc:"–" },
+  "Ruta vacante":                          { n:8, c:"#AE2F25", sev:"Crítico", lect:"Ruta con unidad en trinomio sin operador asignado (VACANTE).", acc:"Cubrir con un operador activo sin unidad." },
+  "Asignado sin estar en RH":              { n:9, c:"#7A1517", sev:"Crítico", lect:"El trinomio asigna a una persona cuya nómina no está en la plantilla de RH.", acc:"Validar el alta en RH o corregir la nómina en trinomio." }
+};
+const SEVX = { "Crítico":"#AE2F25", "Alto":"#E07B39", "Medio":"#E9C34F", "Reserva":"#2563eb", "OK":"#5FA36F" };
+function rhxSummary(){
+  const rows = M.rhx.filter(r => pass(r)), tot = rows.length;
+  return Object.keys(DIAG).map(d => { const rs = rows.filter(r => r.diag === d); const D = DIAG[d];
+    return { kind:"rhsum", diag:d, d:D, sev:D.sev, n:rs.length, pct: tot ? rs.length / tot * 100 : null, nPlantas:new Set(rs.map(r => norm(r.planta)).filter(Boolean)).size, lect:D.lect, acc:D.acc, rows:rs }; }).filter(r => r.n);
+}
+let MX = {};
+function rhxTop(){
+  const rows = M.rhx.filter(r => pass(r)); MX = {};
+  const tot = rows.length;
+  const box = (id, l, list, color, c) => { MX[id] = { t:l, rows:list }; return `<button class="kpi" type="button" data-mx="${id}" style="--k:${color}"><span class="l">${esc(l)}</span><span class="v">${fInt(list.length)}</span><span class="c">${c}</span></button>`; };
+  const conU = rows.filter(r => r.triEst === "Con unidad");
+  const sinU = rows.filter(r => r.triEst !== "Con unidad");
+  const actU = conU.filter(r => r.activo), incU = conU.filter(r => !r.activo);
+  const res = rows.filter(r => r.activo && r.triEst !== "Con unidad");
+  const noTri = rows.filter(r => r.triEst === "No está en trinomio");
+  const incS = rows.filter(r => !r.activo && r.triEst !== "Con unidad");
+  const vac = M.triHuecos.filter(r => pass(r) && r.diag === "Ruta vacante");
+  const hueco = vac.length + incU.length, bal = res.length - hueco;
+  const mini = [
+    box("pl", "Plantilla RH", rows, "var(--navy3)", "operadores en la pestaña RH"),
+    box("conU", "Con unidad en trinomio", conU, "#5FA36F", fPct(conU.length, tot) + " de la plantilla"),
+    box("sinU", "Operadores sin unidad", sinU, "#AE2F25", fPct(sinU.length, tot) + " de la plantilla · " + fInt(res.length) + " activos"),
+    box("actU", "Activos con unidad", actU, "#5FA36F", fPct(actU.length, tot) + " de la plantilla"),
+    box("incU", "Con incidencia y unidad", incU, "#E07B39", "la ruta no está cubierta en la práctica"),
+    box("res", "Activos sin unidad", res, "#2563eb", "reserva para cubrir"),
+    box("incS", "Con incidencia sin unidad", incS, "#E9C34F", "vacaciones, ausentismo, baja…"),
+    box("noTri", "No aparecen en trinomio", noTri, "#C9551F", fPct(noTri.length, tot) + " de la plantilla"),
+    box("vac", "Rutas vacantes (trinomio)", vac, "#AE2F25", "rutas con unidad sin operador"),
+    `<button class="kpi" type="button" data-mx="res" style="--k:${bal < 0 ? "#AE2F25" : "#5FA36F"}"><span class="l">Balance de operadores</span><span class="v ${bal < 0 ? "neg" : "okt"}">${bal > 0 ? "+" : ""}${fInt(bal)}</span><span class="c">${bal < 0 ? `faltan ${fInt(-bal)} para cubrir ${fInt(hueco)} huecos` : `activos sin unidad − (${fInt(vac.length)} vacantes + ${fInt(incU.length)} con incidencia)`}</span></button>`
+  ].join("");
+  const persons = rows;
+  const tipos = [...new Set(persons.map(r => r.tipo))].sort((a,b) => (a === "Activo" ? -1 : b === "Activo" ? 1 : 0) || persons.filter(r => r.tipo === b).length - persons.filter(r => r.tipo === a).length);
+  const est = ["Con unidad","En trinomio sin unidad","No está en trinomio"];
+  const cellB = (key, t, list) => { MX[key] = { t, rows:list }; return list.length ? `<button class="mxb" type="button" data-mx="${key}">${fInt(list.length)}</button>` : "0"; };
+  const body = tipos.map((t, i) => { const pr = persons.filter(r => r.tipo === t);
+    return `<tr><td>${esc(t)}</td>${est.map((e, j) => `<td class="num">${cellB(`m${i}_${j}`, `${t} · ${e}`, pr.filter(r => r.triEst === e))}</td>`).join("")}<td class="num">${cellB(`m${i}_t`, t, pr)}</td></tr>`; }).join("")
+    + `<tr><td>Total</td>${est.map((e, j) => `<td class="num">${cellB(`mt_${j}`, e, persons.filter(r => r.triEst === e))}</td>`).join("")}<td class="num">${cellB("mt_t", "Total personas", persons)}</td></tr>`;
+  const pc = tot ? conU.length / tot * 100 : 0;
+  const split = tot ? `<div class="split"><button type="button" class="sg" data-mx="conU" style="width:${pc}%;background:#5FA36F">${pc >= 12 ? `Con unidad ${fInt(conU.length)} · ${pc.toFixed(1)}%` : ""}</button><button type="button" class="sg" data-mx="sinU" style="width:${100 - pc}%;background:#AE2F25">${100 - pc >= 12 ? `Sin unidad ${fInt(sinU.length)} · ${(100 - pc).toFixed(1)}%` : ""}</button></div>` : "";
+  return `<h4>Plantilla RH (${fInt(tot)} operadores) frente al trinomio</h4>${split}<div class="mini">${mini}</div>
+    <h4>Situación RH × estado en trinomio (clic en un número para ver el desglose)</h4>
+    <div class="mx"><table><thead><tr><th>Situación RH</th>${est.map(e => `<th class="num">${esc(e)}</th>`).join("")}<th class="num">Total</th></tr></thead><tbody>${body}</tbody></table></div>`;
+}
+V.rhx = { label:"RH vs Trinomio", ic:"👥", summary:true, base:() => M.rhx, rows:() => rhxSummary(), top:() => rhxTop(),
+  explain:"Vista desde RH: cada operador de la pestaña RH y cómo aparece en el ejercicio del TRINOMIO (con unidad, en trinomio sin unidad o fuera del trinomio), según su situación en RH. Clic en un diagnóstico o en un número para ver el desglose por operador.",
+  chips:[["","Todos"],["Alto","Alto"],["Medio","Medio"],["Reserva","Reserva"],["OK","Cuadra"]],
+  chipOf:r => r.sev, sort:{k:"diag",dir:1}, sortLabel:"criticidad",
+  cols:[
+    { k:"diag", l:"Diagnóstico", b:true, h:r => pill(r.diag, r.d.c), s:r => r.d.n },
+    { k:"sev", l:"Criticidad", h:r => pill(r.sev, SEVX[r.sev]), s:r => r.d.n },
+    { k:"n", l:"Operadores", n:true },
+    { k:"pct", l:"% de la plantilla", n:true, h:r => r.pct === null ? "N/A" : r.pct.toFixed(1) + "%" },
+    { k:"nPlantas", l:"Plantas", n:true },
+    { k:"lect", l:"Qué significa", w:true },
+    { k:"acc", l:"Acción sugerida", w:true } ] };
+V.rhdet = { label:"Desglose RH vs Trinomio", ic:"👥", rows:() => M.rhx, sort:{k:"diag",dir:1}, sortLabel:"diagnóstico",
+  cols:[
+    { k:"diag", l:"Diagnóstico", h:r => pill(r.diag, DIAG[r.diag].c), s:r => DIAG[r.diag].n },
+    { k:"nomina", l:"Nómina", b:true },
+    { k:"nombre", l:"Operador" },
+    { k:"tipo", l:"Situación RH" },
+    { k:"sinLog", l:"Días sin logueo", n:true, h:r => fInt(r.sinLog) },
+    { k:"triEst", l:"En trinomio" },
+    { k:"conc", l:"Conciliación" },
+    { k:"unidad", l:"Unidad" },
+    { k:"ruta", l:"Ruta" },
+    { k:"planta", l:"Planta" },
+    { k:"coord", l:"Coordinador" },
+    { k:"gerente", l:"Gerente" },
+    { k:"comTri", l:"Comentarios trinomio", w:true },
+    { k:"obs", l:"Observaciones RH", w:true } ] };
+/* Conciliación: ODO vs asignadas y RH vs asignados */
+const CONC = {
+  U:{
+    "Asignada completa":                     { c:"#5FA36F", tema:"Tiene planta, ruta y operador en trinomio.", acc:"–" },
+    "Con ruta sin operador":                 { c:"#E9C34F", tema:"Tiene planta y ruta en trinomio, pero el operador está VACANTE.", acc:"Asignar un operador activo sin unidad." },
+    "Con operador sin ruta":                 { c:"#EDA35C", tema:"Está en trinomio con operador, pero sin ruta definida (vacía o SIN RUTA).", acc:"Definir la ruta en trinomio." },
+    "Con unidad en trinomio sin planta":     { c:"#E07B39", tema:"Aparece en trinomio sin planta.", acc:"Completar la planta en trinomio." },
+    "Sin asignación · disponible":          { c:"#2563eb", tema:"Unidad en condiciones que no está en ningún renglón del trinomio.", acc:"Asignar a plantas con faltante de contrato o a rutas vacantes." },
+    "Sin asignación · en taller":           { c:"#E07B39", tema:"No tiene ruta porque está en taller.", acc:"Dar seguimiento a la fecha compromiso de taller." },
+    "Sin asignación · en corralón":         { c:"#AE2F25", tema:"No tiene ruta porque está en corralón.", acc:"Dar seguimiento a la liberación." },
+    "Sin asignación · fuera de operación":  { c:"#C9551F", tema:"ODO la marca fuera de operación (mantenimiento, alto rezago, a revisar).", acc:"Validar el estatus en ODO." },
+    "Sin asignación · otro estatus":        { c:"#8a94ad", tema:"Sin ruta y con un estatus no clasificado.", acc:"Revisar la unidad." }
+  },
+  O:{
+    "Asignado completo":                         { c:"#5FA36F", tema:"Tiene unidad de ODO, planta y ruta en trinomio.", acc:"–" },
+    "Con unidad sin ruta o planta":              { c:"#EDA35C", tema:"Tiene unidad en trinomio, pero sin ruta definida o sin planta.", acc:"Completar ruta y planta en trinomio." },
+    "Asignado a unidad que no existe en ODO":    { c:"#7A1517", tema:"La unidad que le asigna el trinomio no está en la flota ODO.", acc:"Corregir el número de unidad en trinomio." },
+    "En trinomio sin unidad · activo":          { c:"#2563eb", tema:"Activo en RH; el trinomio lo tiene con unidad 0 / SIN RUTA.", acc:"Asignar a rutas vacantes o unidades disponibles." },
+    "En trinomio sin unidad · con incidencia":  { c:"#E9C34F", tema:"Con incidencia en RH (vacaciones, ausentismo, permiso, baja); el trinomio lo tiene sin unidad.", acc:"Dar seguimiento a la incidencia." },
+    "No aparece en trinomio · activo":          { c:"#C9551F", tema:"Activo en RH, pero el trinomio no lo considera.", acc:"Incluirlo en el trinomio: asignarle ruta o registrarlo como reserva." },
+    "No aparece en trinomio · con incidencia":  { c:"#E9C34F", tema:"Con incidencia en RH y fuera del trinomio.", acc:"Dar seguimiento a la incidencia: reincorporación o baja." }
+  }
+};
+function concData(){
+  const us = M.units.filter(u => pass(u)), os = M.rhx.filter(r => pass(r));
+  const mk = (bloque, meta, list, view) => Object.keys(meta).map((k, i) => { const rows = list.filter(r => r.conc === k);
+    return { kind:"conc", bloque, concepto:k, ord:(bloque === "Unidades" ? 0 : 100) + i, n:rows.length, pct: list.length ? rows.length / list.length * 100 : null, tema:meta[k].tema, acc:meta[k].acc, c:meta[k].c, rows, view, total:list.length }; });
+  return { us, os, U: mk("Unidades", CONC.U, us, "desglose"), O: mk("Operadores", CONC.O, os, "rhdet") };
+}
+function bridgeHtml(id, totalLabel, total, totalRows, cats, finLabel, view){
+  const fin = cats[0], diff = cats.slice(1).filter(c => c.n);
+  const w = n => total ? Math.max(n / total * 100, n ? 0.8 : 0) : 0;
+  let acc = 0, h = "";
+  MX[id + "_t"] = { t:totalLabel, rows:totalRows, view };
+  h += `<button class="brr tot" type="button" data-mx="${id}_t"><span class="bl">${esc(totalLabel)}</span><span class="bt"><i style="left:0;width:100%;background:var(--navy3)"></i></span><span class="bn">${fInt(total)}</span></button>`;
+  diff.forEach((c, i) => { MX[`${id}_${i}`] = { t:c.concepto, rows:c.rows, view };
+    h += `<button class="brr" type="button" data-mx="${id}_${i}"><span class="bl">${esc(c.concepto)}<small>${esc(c.tema)}</small></span><span class="bt"><i style="left:${100 - acc - w(c.n)}%;width:${w(c.n)}%;background:${c.c}"></i></span><span class="bn neg">−${fInt(c.n)}</span></button>`;
+    acc += w(c.n); });
+  MX[id + "_f"] = { t:finLabel, rows:fin.rows, view };
+  h += `<button class="brr fin" type="button" data-mx="${id}_f"><span class="bl">${esc(finLabel)}<small>${fPct(fin.n, total)} del total · diferencial ${fInt(total - fin.n)}</small></span><span class="bt"><i style="left:0;width:${w(fin.n)}%;background:#5FA36F"></i></span><span class="bn okt">${fInt(fin.n)}</span></button>`;
+  return `<div class="brg">${h}</div>`;
+}
+function concTop(){
+  MX = {}; const d = concData();
+  const fU = d.U[0].rows, fuera = fU.filter(u => /TALLER|CORRAL|FUERA/.test(stKey(u.estatus))), dup = fU.filter(u => u.asig > 1);
+  const fO = d.O[0].rows, inc = fO.filter(r => !r.activo);
+  const noOdo = M.extra.filter(r => pass(r) && /ODO/.test(r.motivo)), noRh = M.triHuecos.filter(r => pass(r) && r.diag === "Asignado sin estar en RH");
+  MX.u_fuera = { t:"Asignadas completas en taller / corralón / fuera", rows:fuera, view:"desglose" };
+  MX.u_dup = { t:"Asignadas completas en 2+ rutas", rows:dup, view:"desglose" };
+  MX.u_noodo = { t:"Unidades en trinomio que no existen en ODO", rows:noOdo, view:"extra" };
+  const uH = bridgeHtml("cu", "Total unidades ODO", d.us.length, d.us, d.U, "Asignadas con planta, ruta y operador", "desglose");
+  MX.o_inc = { t:"Asignados completos con incidencia RH", rows:inc, view:"rhdet" };
+  MX.o_norh = { t:"Personas en trinomio que no están en RH", rows:noRh, view:"rhdet" };
+  const oH = bridgeHtml("co", "Total operadores RH", d.os.length, d.os, d.O, "Asignados a unidad, planta y ruta", "rhdet");
+  const lk = (id, n, t) => `<button class="mxb" type="button" data-mx="${id}">${fInt(n)}</button> ${esc(t)}`;
+  return `<h4>Unidades: ODO vs asignadas</h4>${uH}
+    <div class="bside"><span>De las asignadas: ${lk("u_fuera", fuera.length, "están en taller, corralón o fuera de operación")}</span><span>${lk("u_dup", dup.length, "están en 2+ rutas")}</span><span>Fuera del total: ${lk("u_noodo", noOdo.length, "renglones del trinomio con unidad que no existe en ODO")}</span></div>
+    <h4>Operadores: RH vs asignados</h4>${oH}
+    <div class="bside"><span>De los asignados: ${lk("o_inc", inc.length, "tienen incidencia en RH (vacaciones, ausentismo, baja…)")}</span><span>Fuera del total: ${lk("o_norh", noRh.length, "personas del trinomio que no están en RH")}</span></div>`;
+}
+V.conc = { label:"Conciliación", ic:"⚖", summary:true, base:() => [...M.units, ...M.rhx], rows:() => { const d = concData(); return [...d.U, ...d.O].filter(r => r.n); }, top:() => concTop(),
+  explain:"Total de unidades de ODO contra las unidades asignadas con planta, ruta y operador; y total de operadores de RH contra los asignados a una unidad, planta y ruta. Cada barra explica una parte del diferencial. Clic en una barra o en un renglón para ver el desglose.",
+  chips:[["","Todo"],["Unidades","Unidades"],["Operadores","Operadores"]], chipOf:r => r.bloque, sort:{k:"ord",dir:1}, sortLabel:"bloque y concepto",
+  cols:[
+    { k:"bloque", l:"Bloque", b:true },
+    { k:"concepto", l:"Concepto", h:r => pill(r.concepto, r.c) },
+    { k:"n", l:"Cantidad", n:true },
+    { k:"pct", l:"% del total", n:true, h:r => r.pct === null ? "N/A" : r.pct.toFixed(1) + "%" },
+    { k:"tema", l:"Qué tema tiene", w:true },
+    { k:"acc", l:"Acción sugerida", w:true } ] };
+V.plantas = { label:"Planta vs contrato", ic:"📋", rows:() => M.plantas,
+  explain:"Gerente → Planta. Comparativo por UNIDAD: unidades distintas que TRINOMIO asigna a cada planta (tengan o no operador) contra las unidades del CONTRATO. Si una unidad da servicio a dos plantas, cuenta en ambas. «Operativas» excluye las que están en taller, corralón o fuera de operación. Clic en el gerente para abrir o cerrar sus plantas.",
+  chips:[["","Todas"],["F","Faltan unidades"],["E","Excedente"],["C","Completas"],["S","Sin contrato"]], chipOf:p => p.contrato === null ? "S" : p.diff < 0 ? "F" : p.diff > 0 ? "E" : "C",
+  sort:{k:"estado",dir:1}, sortLabel:"brecha", group:{ by:p => p.gerente, label:"Gerente", agg:true },
+  cols:[
+    { k:"planta", l:"Planta", b:true },
+    { k:"rp", l:"RP" },
+    { k:"estado", l:"Estado", h:p => pill(p.estado, p.sev === 1 ? "#AE2F25" : p.sev === 2 ? "#E07B39" : p.sev === 3 ? "#8a94ad" : "#5FA36F"), s:p => p.sev * 1000 + (p.diff || 0) },
+    { k:"contrato", l:"Contrato", n:true, h:p => fInt(p.contrato) },
+    { k:"asignadas", l:"Asignadas", n:true },
+    { k:"cobertura", l:"Cobertura", s:p => p.cobertura === null ? -1 : p.cobertura, h:p => cobBar(p.asignadas, p.contrato) },
+    { k:"diff", l:"Diferencia", n:true, h:p => p.diff === null ? "N/A" : `<span class="${p.diff < 0 ? "neg" : p.diff > 0 ? "pos" : "okt"}">${p.diff > 0 ? "+" : ""}${nf.format(p.diff)}</span>` },
+    { k:"operativas", l:"Operativas", n:true, h:p => p.contrato && p.operativas < p.contrato ? `<span class="neg">${nf.format(p.operativas)}</span>` : nf.format(p.operativas) },
+    { k:"taller", l:"Taller / corralón / fuera", n:true, h:p => p.taller ? `<span class="pos">${p.taller}</span>` : "0" },
+    { k:"sinOp", l:"Unidades sin operador", n:true, h:p => p.sinOp ? `<span class="pos">${p.sinOp}</span>` : "0" },
+    { k:"noOdo", l:"No existen en ODO", n:true, h:p => p.noOdo ? `<span class="neg">${p.noOdo}</span>` : "0" },
+    { k:"noCumple", l:"No cumple antig.", n:true, h:p => p.noCumple ? `<span class="neg">${p.noCumple}</span>` : "0" },
+    { k:"antMax", l:"Antig. máx.", n:true, h:p => fInt(p.antMax) } ] };
+V.carta = { label:"Pre carta operativa", ic:"🗂", rows:() => M.units.filter(u => u.asig > 0),
+  explain:"Unidades con ruta en TRINOMIO, agrupadas por planta: operador (el primero que no es VACANTE), todos los operadores si la unidad es compartida y validación de antigüedad contra contrato. Base para subir al sistema.",
+  chips:[["","Todas"],["OK","Con operador"],["VAC","Sin operador"],["NO CUMPLE","No cumple antigüedad"],["DUP","Unidad compartida (2+)"],["TALLER","En taller"]],
+  chipOf:u => u, chipMatch:(u,c) => c === "OK" ? !isVac(u.operador) : c === "VAC" ? isVac(u.operador) : c === "NO CUMPLE" ? u.cumple === "NO CUMPLE" : c === "DUP" ? u.asig > 1 : c === "TALLER" ? stKey(u.estatus) === "EN TALLER" : true,
+  sort:{k:"unidad",dir:1}, sortLabel:"unidad", group:{ by:u => u.planta || "Sin planta", label:"Planta" },
+  cols:[
+    { k:"unidad", l:"Unidad", b:true },
+    { k:"estatus", l:"Estatus", h:u => stPill(u.estatus), s:u => u.sev },
+    { k:"gerente", l:"Gerente" },
+    { k:"rp", l:"RP" },
+    { k:"coord", l:"Coordinador" },
+    { k:"ruta", l:"Ruta" },
+    { k:"nomina", l:"Nómina", v:u => isVac(u.operador) ? "" : u.nomina },
+    { k:"operador", l:"Operador" },
+    { k:"operadores", l:"Operadores (2+)" },
+    { k:"rutas", l:"Rutas (2+)" },
+    { k:"antUnidad", l:"Antig. unidad", n:true },
+    { k:"cumple", l:"Cumple contrato", h:u => pill(u.cumple || "–", u.cumple === "CUMPLE" ? "#5FA36F" : u.cumple === "NO CUMPLE" ? "#AE2F25" : "#8a94ad") },
+    { k:"placas", l:"Placas fed." },
+    { k:"asientos", l:"Asientos", n:true } ] };
+const ORDER = ["revisar","resumen","conc","operadores","rhx","extra","coment","plantas","carta"];
+if (!ORDER.includes(S.tab)) S.tab = "revisar";
+
+function cobBar(a, c){
+  if (!c) return "N/A";
+  const pct = a / c * 100, u = CONFIG.umbrales.cobertura;
+  const col = pct > 102 ? "#E07B39" : pct >= u.verde ? "#5FA36F" : pct >= u.ambar ? "#E9C34F" : "#AE2F25";
+  return `<div class="mbar"><div class="t"><i style="width:${Math.min(pct,100)}%;background:${col}"></i></div><span>${pct.toFixed(1)}%</span></div>`;
+}
+function rowsOf(key, skipChip){
+  const v = V[key]; let rows = v.summary ? v.rows() : v.rows().filter(r => pass(r));
+  const c = S.chip[key];
+  if (c && !skipChip) rows = rows.filter(r => v.chipMatch ? v.chipMatch(v.chipOf(r), c) : v.chipOf(r) === c);
+  return rows;
+}
+function sorter(key){
+  const v = V[key], st = S.sort[key] || v.sort, col = v.cols.find(c => c.k === st.k);
+  const get = col && col.s ? col.s : (r => r[st.k]);
+  return (a, b) => {
+    let x = get(a), y = get(b);
+    if (typeof x !== "number" || typeof y !== "number") { const xn = num(x), yn = num(y); if (xn !== null && yn !== null && /^[\d.,$\s-]+$/.test(String(x)) && /^[\d.,$\s-]+$/.test(String(y))) { x = xn; y = yn; } }
+    const ex = x === null || x === undefined || x === "", ey = y === null || y === undefined || y === "";
+    if (ex && ey) return 0; if (ex) return 1; if (ey) return -1;
+    if (typeof x === "string") { const c = x.localeCompare(y, "es", {numeric:true}); if (c) return c * st.dir; }
+    else { if (x < y) return -st.dir; if (x > y) return st.dir; }
+    return String(a.unidad || a.nomina || a.planta || "").localeCompare(String(b.unidad || b.nomina || b.planta || ""), "es", {numeric:true});
+  };
+}
+
+/* =================== Render: filtros en cascada con multiselección =================== */
+function renderFilters(){
+  const v = V[S.tab]; const base = v.base ? v.base() : v.rows ? v.rows() : [...M.units, ...M.ops];
+  const openSet = new Set([...document.querySelectorAll("#msBox details[open]")].map(d => d.dataset.k));
+  $("#msBox").innerHTML = FILTERS.map(f => {
+    const counts = new Map();
+    base.filter(r => pass(r, f.k)).forEach(r => { const v = f.get(r); const vs = (f.k === "coord" && r.kind === "planta") ? v.split(" / ") : [v]; vs.forEach(x => { if (x) counts.set(x, (counts.get(x) || 0) + 1); }); });
+    S.f[f.k].forEach(x => { if (!counts.has(x)) counts.set(x, 0); });
+    if (!counts.size) return "";
+    const opts = [...counts.entries()].sort((a,b) => f.k === "estatus" ? b[1]-a[1] : a[0].localeCompare(b[0], "es", {numeric:true}));
+    const sel = S.f[f.k];
+    const val = sel.size === 0 ? `Todos (${opts.length})` : sel.size === 1 ? [...sel][0] : `${sel.size} seleccionados`;
+    return `<details class="ms" data-k="${f.k}"${openSet.has(f.k) ? " open" : ""}><summary><span class="lab">${esc(f.l)}</span><span class="val"><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(val)}</span></span></summary>
+      <div class="opts">${opts.map(([o,n]) => `<label class="opt"><input type="checkbox" data-k="${f.k}" value="${esc(o)}"${sel.has(o) ? " checked" : ""}><span title="${esc(o)}">${esc(o)}</span><em>${nf.format(n)}</em></label>`).join("")}</div></details>`;
+  }).join("");
+  document.querySelectorAll("#msBox input[type=checkbox]").forEach(cb => cb.addEventListener("change", e => { const s = S.f[e.target.dataset.k]; e.target.checked ? s.add(e.target.value) : s.delete(e.target.value); renderAll(); }));
+  $("#fQ").value = S.q;
+  document.querySelectorAll(".qchip").forEach(b => b.setAttribute("aria-pressed", S.quick[b.dataset.q]));
+  const n = activeCount(); $("#fCount").textContent = n ? `${n} activos` : "";
+}
+
+/* =================== Render: KPIs clicables =================== */
+function kpi(o){ return `<button class="kpi" type="button" style="--k:${o.color}" data-kpi="${o.id}"><span class="l">${esc(o.l)}</span><span class="v">${o.v}</span><span class="c">${o.c}</span>${o.tag ? `<span class="tag ${o.tagc}">${esc(o.tag)}</span>` : ""}</button>`; }
+let KPIS = {};
+function renderKpis(){
+  const u = M.units.filter(r => pass(r)), tot = u.length;
+  const cnt = k => u.filter(r => stKey(r.estatus) === k);
+  const asg = cnt("ASIGNADA"), sinop = cnt("ASIGNADA SIN OPERADOR"), disp = cnt("DISPONIBLE"), tal = cnt("EN TALLER"), cor = cnt("EN CORRALÓN"), fue = cnt("FUERA");
+  const conRuta = u.filter(r => r.asig > 0).length;
+  const pl = M.plantas.filter(r => pass(r) && r.contrato !== null);
+  const contr = pl.reduce((a,p) => a + p.contrato, 0), asig = pl.reduce((a,p) => a + p.asignadas, 0);
+  const cob = contr ? asig / contr * 100 : null, cu = CONFIG.umbrales.cobertura;
+  const falt = pl.filter(p => p.diff < 0);
+  const nc = u.filter(r => r.asig > 0 && r.cumple === "NO CUMPLE");
+  const ops = M.ops.filter(r => pass(r)), act = ops.filter(o => norm(o.tipo) === "ACTIVO");
+  const ex = M.extra.filter(r => pass(r));
+  const uu = M.units.filter(r => pass(r));
+  const cmC = uu.filter(r => obsTipo(r) === "Comentario trinomio").length, cmN = uu.filter(r => obsTipo(r) === "No cumple").length;
+  const crit = M.rev.filter(r => pass(r) && r.sev === "Crítico");
+  const costoT = tal.reduce((a,r) => a + (r.costo || 0), 0);
+  KPIS = {
+    flota:{ title:"Flota ODO", rows:u, view:"unidades" },
+    asig:{ title:"Asignadas con operador", rows:asg, view:"carta" },
+    sinasig:{ title:"Unidades sin asignar", rows:u.filter(r => stKey(r.estatus) !== "ASIGNADA"), view:"unidades" },
+    cob:{ title:"Planta vs contrato", rows:pl, view:"plantas" },
+    disp:{ title:"Unidades disponibles", rows:disp, view:"unidades" },
+    sinop:{ title:"Rutas sin operador", rows:sinop, view:"unidades" },
+    tal:{ title:"Unidades en taller", rows:tal, view:"unidades" },
+    cor:{ title:"Corralón / fuera de operación", rows:[...cor, ...fue], view:"unidades" },
+    nc:{ title:"No cumplen antigüedad de contrato", rows:nc, view:"carta" },
+    ops:{ title:"Operadores sin unidad", rows:ops, view:"operadores" },
+    ex:{ title:"Trinomio de más", rows:ex, view:"extra" },
+    com:{ tab:"coment" }
+  };
+  const cobTag = cob === null ? ["N/A","t-mute"] : cob > 102 ? ["Excedente","t-warn"] : cob >= cu.verde ? ["En meta","t-ok"] : cob >= cu.ambar ? ["Abajo de meta","t-warn"] : ["Crítico","t-bad"];
+  $("#kpis").innerHTML = [
+    kpi({ id:"flota", l:"Flota ODO", v:fInt(tot), c:`${fInt(conRuta)} con ruta · ${fPct(conRuta, tot)}`, color:"var(--navy3)" }),
+    kpi({ id:"asig", l:"Asignadas con operador", v:fInt(asg.length), c:`${fPct(asg.length, tot)} de la flota`, color:"#5FA36F", tag:"Operando", tagc:"t-ok" }),
+    kpi({ id:"sinasig", l:"Unidades sin asignar", v:fInt(tot - asg.length), c:`${fPct(tot - asg.length, tot)} de la flota · disponibles, taller, corralón, sin operador`, color:"#AE2F25", tag:(tot - asg.length) ? "Ver detalle" : "OK", tagc:(tot - asg.length) ? "t-bad" : "t-ok" }),
+    kpi({ id:"cob", l:"Cobertura de contrato", v:cob === null ? "N/A" : cob.toFixed(1) + "%", c:`${fInt(asig)} asignadas vs ${fInt(contr)} contratadas · meta ${cu.verde}%`, color:"var(--info)", tag:cobTag[0], tagc:cobTag[1] }),
+    kpi({ id:"disp", l:"Disponibles", v:fInt(disp.length), c:`para ${fInt(falt.reduce((a,p) => a - p.diff, 0))} faltantes en ${fInt(falt.length)} plantas`, color:"#2563eb", tag: disp.length ? "Asignables" : "Sin reserva", tagc: disp.length ? "t-info" : "t-bad" }),
+    kpi({ id:"sinop", l:"Ruta sin operador", v:fInt(sinop.length), c:`${fInt(act.length)} operadores activos sin unidad`, color:"#E9C34F", tag: sinop.length ? "Por cubrir" : "OK", tagc: sinop.length ? "t-warn" : "t-ok" }),
+    kpi({ id:"tal", l:"En taller", v:fInt(tal.length), c:`${money0.format(costoT)} en refacciones`, color:"#E07B39", tag: tal.length ? "Seguimiento" : "OK", tagc: tal.length ? "t-warn" : "t-ok" }),
+    kpi({ id:"cor", l:"Corralón / fuera de op.", v:fInt(cor.length + fue.length), c:`${fInt(cor.length)} corralón · ${fInt(fue.length)} fuera ODO`, color:"#AE2F25", tag:(cor.length + fue.length) ? "Crítico" : "OK", tagc:(cor.length + fue.length) ? "t-bad" : "t-ok" }),
+    kpi({ id:"nc", l:"No cumple antigüedad", v:fInt(nc.length), c:`${fPct(nc.length, conRuta)} de las unidades con ruta`, color:"#C9551F", tag: nc.length ? "Sustituir" : "OK", tagc: nc.length ? "t-bad" : "t-ok" }),
+    kpi({ id:"ops", l:"Operadores sin unidad", v:fInt(ops.length), c:`${fPct(ops.length, M.rh.length)} de ${fInt(M.rh.length)} en RH`, color:"#EDA35C", tag:`${fInt(act.length)} activos`, tagc:"t-info" }),
+    kpi({ id:"ex", l:"Trinomio de más", v:fInt(ex.length), c:`${fInt(ex.filter(r => r.sev === 1).length)} críticos por corregir`, color:"#7A1517", tag: ex.length ? "Depurar" : "OK", tagc: ex.length ? "t-bad" : "t-ok" }),
+    kpi({ id:"com", l:"Comentarios / análisis", v:fInt(cmC + cmN), c:`${fInt(cmC)} comentarios · ${fInt(cmN)} no cumplen asignación`, color:"var(--teal)", tag: cmN ? "Revisar" : "OK", tagc: cmN ? "t-bad" : "t-ok" })
+  ].join("");
+  document.querySelectorAll(".kpi").forEach(b => b.addEventListener("click", () => openKpi(b.dataset.kpi)));
+  $("#btnAlert").hidden = !crit.length; $("#alertN").textContent = nf.format(crit.length);
+}
+
+/* =================== Render: pestañas, tablas jerárquicas =================== */
+function renderTabs(){
+  $("#tabs").innerHTML = ORDER.map(k => { const v = V[k]; const n = v.rows ? rowsOf(k, true).length : null;
+    const red = k === "revisar" && M.rev.some(r => pass(r) && r.sev === "Crítico");
+    return `<button class="tab" role="tab" type="button" aria-selected="${k === S.tab}" data-k="${k}">${v.ic} ${esc(v.label)}${n !== null ? `<span class="n${red ? " red" : ""}">${nf.format(n)}</span>` : ""}</button>`; }).join("");
+  document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => { S.tab = b.dataset.k; renderAll(); }));
+}
+let CUR = [];
+function cell(c, r){ if (c.h) return c.h(r); const v = c.v ? c.v(r) : r[c.k]; if (v instanceof Date) return fDate(v); if (typeof v === "number") return nf.format(v); return esc(v === null || v === undefined || v === "" ? "–" : v); }
+function tableHtml(key, rows, flat){
+  const v = V[key], st = S.sort[key] || v.sort, grouped = v.group && !flat;
+  CUR = []; let i = 0;
+  const head = `<tr><th class="num"><button type="button" tabindex="-1">#</button></th>${v.cols.map(c => `<th class="${c.n ? "num" : ""}"><button type="button" data-k="${c.k}">${esc(c.l)}<span class="ar">${st.k === c.k ? (st.dir === 1 ? "▲" : "▼") : ""}</span></button></th>`).join("")}</tr>`;
+  const rowHtml = (r, sub, j) => { const idx = CUR.push(r) - 1; return `<tr class="row${sub ? " sub" : ""}" data-i="${idx}"><td class="num"><span class="rank-badge${j <= 3 ? " r1" : ""}">${j}</span></td>${v.cols.map(c => `<td class="${c.n ? "num" : ""}${c.w ? " wrapc" : ""}"${c.b ? ' style="font-weight:600"' : ""}>${cell(c, r)}</td>`).join("")}</tr>`; };
+  let body;
+  if (!rows.length) body = `<tr><td colspan="${v.cols.length + 1}" class="empty">Sin registros con los filtros actuales. Usa “↺ Limpiar filtros”.</td></tr>`;
+  else if (!grouped) body = rows.map(r => rowHtml(r, false, ++i)).join("");
+  else {
+    const gm = new Map(); rows.forEach(r => { const g = v.group.by(r) || "–"; if (!gm.has(g)) gm.set(g, []); gm.get(g).push(r); });
+    const worst = a => Math.min(...a.map(r => r.sevN || r.sev || 9));
+    const groups = [...gm.entries()].sort((a,b) => worst(a[1]) - worst(b[1]) || b[1].length - a[1].length || a[0].localeCompare(b[0], "es"));
+    S.open[key] = S.open[key] || {};
+    body = groups.map(([g, a]) => {
+      const open = S.open[key][g] !== false;
+      let agg = `${nf.format(a.length)} registros`;
+      if (v.group.agg) { const c = a.reduce((x,p) => x + (p.contrato || 0), 0), s = a.reduce((x,p) => x + p.asignadas, 0); agg = `${nf.format(a.length)} plantas · contrato ${fInt(c)} · asignadas ${fInt(s)} · cobertura ${fPct(s, c)}`; }
+      if (key === "revisar") { const cc = a.filter(r => r.sev === "Crítico").length; if (cc) agg += ` · ${cc} críticos`; }
+      let j = 0;
+      return `<tr class="grp" data-g="${esc(g)}"><td colspan="${v.cols.length + 1}">${open ? "▾" : "▸"} ${esc(v.group.label)}: ${esc(g)} <span style="font-weight:500;color:var(--muted)">· ${agg}</span></td></tr>` + (open ? a.map(r => rowHtml(r, true, ++j)).join("") : "");
+    }).join("");
+  }
+  return `<div class="tscroll"><table><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+}
+function renderView(){
+  const k = S.tab, v = V[k];
+  if (v.chart) { renderResumen(); return; }
+  const base = rowsOf(k, true), rows = rowsOf(k).sort(sorter(k));
+  const st = S.sort[k] || v.sort, sc = v.cols.find(c => c.k === st.k);
+  const chips = v.chips.map(([val, lab]) => { const n = val ? base.filter(r => v.chipMatch ? v.chipMatch(v.chipOf(r), val) : v.chipOf(r) === val).length : base.length;
+    return `<button class="chip" type="button" aria-pressed="${(S.chip[k] || "") === val}" data-v="${esc(val)}">${esc(lab)} · ${nf.format(n)}</button>`; }).join("");
+  $("#view").innerHTML = `<div class="chead"><span class="ic">${v.ic}</span><h3>${esc(v.label)}</h3><span class="cnt">${nf.format(rows.length)}</span><span class="meta">Ordenado por ${esc(sc ? sc.l.toLowerCase() : v.sortLabel)}${v.group ? " · agrupado por " + v.group.label.toLowerCase() : ""}</span><span class="sp"></span><button class="xbtn" type="button" id="xlsView">⬇ Excel</button></div>
+    <p class="explain">${esc(v.explain)}</p>${v.top ? `<div class="rtop">${v.top()}</div>` : ""}<div class="chips" role="group" aria-label="Filtro rápido">${chips}</div>${tableHtml(k, rows)}`;
+  document.querySelectorAll("#view .chip").forEach(b => b.addEventListener("click", () => { S.chip[k] = b.dataset.v; renderAll(); }));
+  const rowsRef = [...CUR];
+  document.querySelectorAll("#view thead button[data-k]").forEach(b => b.addEventListener("click", () => { const cur = S.sort[k] || v.sort; S.sort[k] = { k:b.dataset.k, dir: cur.k === b.dataset.k ? -cur.dir : 1 }; renderView(); }));
+  document.querySelectorAll("#view tr.grp").forEach(tr => tr.addEventListener("click", () => { const g = tr.dataset.g; S.open[k][g] = S.open[k][g] === false; renderView(); }));
+  document.querySelectorAll("#view tr.row").forEach(tr => tr.addEventListener("click", () => openRecord(rowsRef[+tr.dataset.i])));
+  $("#xlsView").addEventListener("click", () => exportRows(k, rows, v.label));
+  document.querySelectorAll("#view [data-mx]").forEach(b => b.addEventListener("click", () => { const m = MX[b.dataset.mx]; if (m) openList(m.t, m.rows, m.view || "rhdet"); }));
+}
+
+/* =================== Resumen con gráficas (Chart.js 4.4.1) =================== */
+const CH = {};
+function renderResumen(){
+  const u = M.units.filter(r => pass(r));
+  const pl = M.plantas.filter(r => pass(r) && r.contrato !== null).sort((a,b) => (b.contrato || 0) - (a.contrato || 0));
+  const ops = M.ops.filter(r => pass(r));
+  $("#view").innerHTML = `<div class="chead"><span class="ic">📊</span><h3>Resumen de flota y contrato</h3><span class="meta">Corte actual · clic en una barra para ver el detalle</span><span class="sp"></span><button class="xbtn" type="button" id="xlsRes">⬇ Excel</button></div>
+    <div class="charts">
+      <div class="chbox"><h4>Flota por estatus</h4><span class="sub">${fInt(u.length)} unidades ODO</span><div class="cv"><canvas id="c1" aria-label="Flota por estatus"></canvas></div></div>
+      <div class="chbox"><h4>Operadores sin unidad por situación RH</h4><span class="sub">${fInt(ops.length)} operadores</span><div class="cv"><canvas id="c3" aria-label="Operadores sin unidad por situación"></canvas></div></div>
+      <div class="chbox" style="grid-column:1/-1"><h4>Asignadas vs contrato por planta</h4><span class="sub">Barra = unidades asignadas (verde completa · rojo faltante · naranja excedente) · línea = contrato (meta)</span><div class="cv tall"><canvas id="c2" aria-label="Asignadas vs contrato por planta"></canvas></div></div>
+    </div>`;
+  $("#xlsRes").addEventListener("click", () => exportRows("plantas", pl, "Planta vs contrato"));
+  Object.values(CH).forEach(c => { try { c.destroy(); } catch(e){} });
+  if (!window.Chart) { $("#view").insertAdjacentHTML("beforeend", `<p class="empty">La librería de gráficas no cargó. Pulsa Recargar.</p>`); return; }
+  Chart.defaults.font.family = "Inter, Arial, sans-serif"; Chart.defaults.color = "#4a5672"; Chart.defaults.borderColor = "#e6eaf2";
+  const keys = Object.keys(ST);
+  CH.c1 = new Chart($("#c1"), { type:"bar", data:{ labels:keys.map(k => ST[k].label), datasets:[{ data:keys.map(k => u.filter(r => stKey(r.estatus) === k).length), backgroundColor:keys.map(k => ST[k].color), borderRadius:4 }] },
+    options:{ indexAxis:"y", maintainAspectRatio:false, plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label:c => `${nf.format(c.raw)} unidades · ${fPct(c.raw, u.length)}` } } },
+      scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } }, y:{ grid:{display:false} } },
+      onClick:(e, el) => { if (!el.length) return; const k = keys[el[0].index]; openList(`Unidades · ${ST[k].label}`, u.filter(r => stKey(r.estatus) === k), k === "ASIGNADA" ? "carta" : "unidades"); } } });
+  const tipos = [...new Set(ops.map(o => o.tipo))].sort((a,b) => ops.filter(o => o.tipo === b).length - ops.filter(o => o.tipo === a).length);
+  CH.c3 = new Chart($("#c3"), { type:"bar", data:{ labels:tipos, datasets:[{ data:tipos.map(t => ops.filter(o => o.tipo === t).length), backgroundColor:tipos.map(t => { const n = norm(t); return n === "ACTIVO" ? "#5FA36F" : /BAJA/.test(n) ? "#AE2F25" : /AUSENT/.test(n) ? "#E07B39" : "#E9C34F"; }), borderRadius:4 }] },
+    options:{ indexAxis:"y", maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } }, y:{ grid:{display:false} } },
+      onClick:(e, el) => { if (!el.length) return; const t = tipos[el[0].index]; openList(`Operadores sin unidad · ${t}`, ops.filter(o => o.tipo === t), "operadores"); } } });
+  CH.c2 = new Chart($("#c2"), { data:{ labels:pl.map(p => p.planta), datasets:[
+      { type:"bar", label:"Asignadas", data:pl.map(p => p.asignadas), backgroundColor:pl.map(p => p.diff < 0 ? "#AE2F25" : p.diff > 0 ? "#E07B39" : "#5FA36F"), borderRadius:3, order:2 },
+      { type:"line", label:"Contrato (meta)", data:pl.map(p => p.contrato), borderColor:"#1a2236", backgroundColor:"#1a2236", pointRadius:3, borderWidth:2, tension:0, order:1 } ] },
+    options:{ maintainAspectRatio:false, interaction:{ mode:"index", intersect:false },
+      plugins:{ legend:{ position:"bottom" }, tooltip:{ callbacks:{ afterBody:it => { const p = pl[it[0].dataIndex]; return `Cobertura ${fPct(p.asignadas, p.contrato)} · ${p.estado}`; } } } },
+      scales:{ x:{ ticks:{ autoSkip:false, maxRotation:60, minRotation:45, font:{ size:10 } }, grid:{display:false} }, y:{ beginAtZero:true, ticks:{ precision:0 } } },
+      onClick:(e, el) => { if (!el.length) return; openRecord(pl[el[0].index]); } } });
+}
+
+/* =================== Modales: KPI → lista → registro (≤2 clics) =================== */
+let MSTACK = [];
+function showModal(){ $("#modal").hidden = false; $("#mClose").focus(); }
+function closeModal(){ $("#modal").hidden = true; MSTACK = []; }
+function paintModal(){
+  const top = MSTACK[MSTACK.length - 1]; if (!top) { closeModal(); return; }
+  $("#mBack").hidden = MSTACK.length < 2; $("#mTitle").textContent = top.title;
+  if (top.type === "list") {
+    $("#mBody").innerHTML = tableHtml(top.view, top.rows, true); const rowsRef = [...CUR];
+    $("#mBody").querySelectorAll("thead button[data-k]").forEach(b => b.addEventListener("click", () => { const v = V[top.view], cur = S.sort[top.view] || v.sort; S.sort[top.view] = { k:b.dataset.k, dir: cur.k === b.dataset.k ? -cur.dir : 1 }; top.rows.sort(sorter(top.view)); paintModal(); }));
+    $("#mBody").querySelectorAll("tr.row").forEach(tr => tr.addEventListener("click", () => pushRecord(rowsRef[+tr.dataset.i])));
+  } else $("#mBody").innerHTML = `<div class="pad">${top.html}</div>`;
+}
+function openList(title, rows, view){ MSTACK = [{ type:"list", title:`${title} · ${nf.format(rows.length)}`, rows:[...rows].sort(sorter(view)), view }]; paintModal(); showModal(); }
+function openKpi(id){ const k = KPIS[id]; if (!k) return; if (k.tab) { S.tab = k.tab; renderAll(); $("#tabs").scrollIntoView({ behavior:"smooth", block:"start" }); return; } openList(k.title, k.rows, k.view); }
+function openRecord(r){ if (r.kind === "resumen") { openList(r.obs, r.units, "desglose"); return; } if (r.kind === "rhsum") { openList(r.diag, r.rows, "rhdet"); return; } if (r.kind === "conc") { openList(`${r.bloque} · ${r.concepto}`, r.rows, r.view); return; } MSTACK = []; pushRecord(r); showModal(); }
+function pushRecord(r){ const d = recordHtml(r); MSTACK.push({ type:"rec", title:d.title, html:d.html, row:r }); paintModal(); }
+const kv = (l, v) => `<dl class="kv"><dt>${esc(l)}</dt><dd>${v}</dd></dl>`;
+const SAB_FIX = ["Vehicle ID","DISPONIBILIDAD","# ASIGNACIONES TRINOMIO","DUPLICADA","PLANTA","COORDINADOR","NÓMINA","OPERADOR","RUTA","COMENTARIOS","GERENTE","TODAS LAS RUTAS (2+)","OPERADORES (2+)","F. INGRESO","ANTIGÜEDAD OPERADOR","PUESTO","FECHA ÚLT. LOGUEO","NO LOGUEO","TIPO","OBSERVACIONES","RP","ANTIGÜEDAD MÁX. VEHÍCULO","CONTRATO (UNIDADES)","ANTIGÜEDAD UNIDAD (AÑOS)","CUMPLE AÑO CONTRATO","FALLA / ESTATUS","FAMILIA","CLASIFICACIÓN","REFACCIÓN","SIC","FECHA COMPROMISO","COSTO REF","PLANTA CORRALÓN","FECHA INGRESO CORRALÓN","DÍAS EN CORRALÓN","MOTIVO","STATUS CORRALÓN","MONTO"];
+function recordHtml(r){
+  if (r.kind === "revisar") { const d = r.src ? recordHtml(r.src) : { title:r.tipo, html:"" };
+    return { title:d.title, html:`<p class="msec">Por revisar</p>${kv("Criticidad", pill(r.sev, SEVC[r.sev]))}${kv("Situación", esc(r.tipo))}${kv("Detalle", esc(r.detalle))}${kv("Acción sugerida", esc(r.accion))}${kv("Responsable", esc(r.responsable || "–"))}` + d.html }; }
+  if (r.kind === "unidad") {
+    const H = rowsFrom(RAW.sabana, "Vehicle ID").header.map(clean); SAB_FIX.forEach((n, i) => { if (!H[i]) H[i] = n; });
+    let html = "";
+    [["Estatus",0,4],["Análisis de asignación",81,82],["TRINOMIO",4,13],["RH (operador)",13,20],["Contrato",20,25],["Taller",25,32],["Corralón",32,38],["ODO",38,81]].forEach(([t,a,b]) => {
+      const it = []; for (let i = a; i < b; i++) { const val = clean(r._raw[i]); if ((val !== "" && val !== "0") || i < 4) it.push(kv(H[i] || "", i === 1 ? stPill(val) : esc(val || "–"))); }
+      if (it.length) html += `<p class="msec">${esc(t)}</p>` + it.join("");
+    });
+    return { title:`Unidad ${r.unidad} · ${stInfo(r.estatus).label}`, html };
+  }
+  if (r.kind === "planta") {
+    let html = V.plantas.cols.map(c => kv(c.l, cell(c, r))).join("");
+    const es = r.uList || [];
+    html += `<p class="msec">Unidades en trinomio para esta planta (${es.length})</p>` + (es.length ? es.map(e => kv(e.unidad, `${e.u ? stPill(e.u.estatus) : pill("No existe en ODO", "#7A1517")} ${esc(e.rutas.join(" / ") || "–")} · ${e.conOp ? esc(e.ops.join(" / ")) : '<span class="pos">Sin operador</span>'}${e.u && r.antMax !== null && e.u.antUnidad !== null && e.u.antUnidad > r.antMax ? ' · <span class="neg">No cumple antigüedad</span>' : ""}`)).join("") : `<p class="empty">Sin unidades asignadas.</p>`);
+    return { title:`Planta ${r.planta} · ${r.estado}`, html };
+  }
+  const vv = V[r.kind === "operador" ? "operadores" : r.kind === "comentario" ? "coment" : r.kind === "rhx" ? "rhdet" : "extra"];
+  let html = vv.cols.map(c => kv(c.l, cell(c, r))).join("");
+  const t = M.tr.filter(x => x.nomina && x.nomina === r.nomina);
+  if (t.length) html += `<p class="msec">Renglones en TRINOMIO (${t.length})</p>` + t.map(x => kv(x.planta, `${esc(x.nombre)} · ${esc(x.ruta)} · unidad ${esc(x.unidad || "0")}`)).join("");
+  return { title:`${r.nombre || "Registro"}${r.nomina ? " · " + r.nomina : ""}`, html };
+}
+$("#mClose").addEventListener("click", closeModal);
+$("#mBack").addEventListener("click", () => { MSTACK.pop(); paintModal(); });
+$("#modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#modal").hidden) closeModal(); });
+$("#mXls").addEventListener("click", () => { const t = MSTACK[MSTACK.length - 1]; if (!t) return;
+  if (t.type === "list") exportRows(t.view, t.rows, t.title.split(" · ")[0]);
+  else { const r = t.row.kind === "revisar" && t.row.src ? t.row.src : t.row; const v = r.kind === "unidad" ? "carta" : r.kind === "operador" ? "operadores" : r.kind === "planta" ? "plantas" : r.kind === "revisar" ? "revisar" : r.kind === "comentario" ? "coment" : r.kind === "rhx" ? "rhdet" : "extra"; exportRows(v, [r], "Detalle"); } });
+
+/* =================== Excel (SheetJS 0.18.5) =================== */
+let DL = null;
+function plain(c, r){ const v = c.v ? c.v(r) : r[c.k]; if (v instanceof Date) return fDate(v); if (c.k === "cobertura") return r.contrato ? +(r.asignadas / r.contrato * 100).toFixed(1) : "N/A"; return v === null || v === undefined ? "" : v; }
+async function saveWb(wb, name){
+  if (!window.XLSX || !wb) { showAlert("info", "La librería de Excel no cargó. Pulsa Recargar para exportar."); return; }
+  const fname = `${name.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"")}_LipuMty_${stamp()}.xlsx`;
+  if (IN_CLAUDE) { if (!DL) { try { DL = await window.claude.use("downloads"); } catch(e){} }
+    if (DL) { try { await DL.save({ filename:fname, data:new Uint8Array(XLSX.write(wb, { bookType:"xlsx", type:"array" })) }); } catch(e){ showAlert("info", "No se guardó el archivo: la descarga se canceló o no está permitida en esta vista."); } return; } }
+  XLSX.writeFile(wb, fname);
+}
+function sheetOf(view, rows){ const v = V[view]; return XLSX.utils.aoa_to_sheet([v.cols.map(c => c.l), ...rows.map(r => v.cols.map(c => plain(c, r)))]); }
+/* Excel no permite : \ / ? * [ ] en el nombre de la hoja (máx. 31 caracteres) */
+const sheetName = s => String(s || "Hoja").replace(/[:\\\/?*\[\]]/g, "-").replace(/\s+/g, " ").trim().slice(0,31) || "Hoja";
+function exportRows(view, rows, name){
+  if (!window.XLSX) { saveWb(null, name); return; }
+  try { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, sheetOf(view, rows), sheetName(name || V[view].label)); saveWb(wb, name || V[view].label); }
+  catch (e) { showAlert("info", `No se pudo generar el Excel: ${esc(e.message || e)}`); }
+}
+$("#btnExcel").addEventListener("click", () => {
+  if (!M) return; if (!window.XLSX) { saveWb(null, "x"); return; }
+  const carta = M.units.filter(u => u.asig > 0 && pass(u)).sort((a,b) => norm(a.planta).localeCompare(norm(b.planta), "es") || a.unidad.localeCompare(b.unidad, "es", {numeric:true}));
+  const cols = ["PLANTA","GERENTE","RP","COORDINADOR","RUTA","UNIDAD","ECO","PLACAS FEDERALES","TIPO","ASIENTOS","AÑO","NÓMINA","OPERADOR","OPERADORES QUE USAN LA UNIDAD (2+)","RUTAS (2+)","ESTATUS","ANTIGÜEDAD UNIDAD","ANTIGÜEDAD MÁX. CONTRATO","CUMPLE CONTRATO","COMENTARIOS"];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([cols, ...carta.map(u => [u.planta,u.gerente,u.rp,u.coord,u.ruta,u.unidad,u.eco,u.placas,u.tipoVeh,u.asientos,u.anio,isVac(u.operador) ? "" : u.nomina,u.operador,u.operadores,u.rutas,u.estatus,u.antUnidad ?? "",u.antMax ?? "",u.cumple,u.comentarios])]), "Pre carta operativa");
+  XLSX.utils.book_append_sheet(wb, sheetOf("revisar", M.rev.filter(r => pass(r)).sort(sorter("revisar"))), "Por revisar");
+  XLSX.utils.book_append_sheet(wb, sheetOf("unidades", M.units.filter(u => stKey(u.estatus) !== "ASIGNADA" && pass(u)).sort(sorter("unidades"))), "Unidades sin asignar");
+  XLSX.utils.book_append_sheet(wb, sheetOf("operadores", M.ops.filter(r => pass(r)).sort(sorter("operadores"))), "Operadores sin unidad");
+  XLSX.utils.book_append_sheet(wb, sheetOf("extra", M.extra.filter(r => pass(r))), "Trinomio de mas");
+  XLSX.utils.book_append_sheet(wb, sheetOf("coment", obsSummary().sort(sorter("coment"))), "Resumen comentarios");
+  XLSX.utils.book_append_sheet(wb, sheetOf("desglose", M.units.filter(u => pass(u)).sort(sorter("desglose"))), "Desglose comentarios");
+  { const d = concData(); XLSX.utils.book_append_sheet(wb, sheetOf("conc", [...d.U, ...d.O]), "Conciliacion"); }
+  XLSX.utils.book_append_sheet(wb, sheetOf("rhx", rhxSummary()), "RH vs Trinomio");
+  XLSX.utils.book_append_sheet(wb, sheetOf("rhdet", M.rhx.filter(r => pass(r)).sort(sorter("rhdet"))), "Desglose RH vs Trinomio");
+  XLSX.utils.book_append_sheet(wb, sheetOf("plantas", M.plantas.filter(r => pass(r)).sort(sorter("plantas"))), "Planta vs contrato");
+  saveWb(wb, "PreCartaOperativa");
+});
+
+/* =================== Alertas, corte y render =================== */
+function showAlert(kind, html, actions){
+  const box = document.createElement("div"); box.className = "alert" + (kind === "info" ? " info" : "");
+  box.innerHTML = `<span>${html}</span><span class="act"></span>`;
+  (actions || []).forEach(([l, fn]) => { const b = document.createElement("button"); b.className = "abtn"; b.type = "button"; b.textContent = l; b.addEventListener("click", () => { box.remove(); fn(); }); box.querySelector(".act").appendChild(b); });
+  const x = document.createElement("button"); x.className = "abtn"; x.type = "button"; x.textContent = "Cerrar"; x.addEventListener("click", () => box.remove()); box.querySelector(".act").appendChild(x);
+  $("#alerts").appendChild(box);
+}
+function setCorte(d, cached){
+  const ageH = (Date.now() - d.getTime()) / 36e5;
+  $("#corteDot").className = "dot" + (ageH > 72 ? " red" : ageH > 24 ? " amber" : "");
+  $("#corteTxt").textContent = `${cached ? "Copia guardada" : "Actualizado"} ${fBadge(d)} · ${SOURCE} · ${nf.format(ROWS_READ)} filas`;
+}
+function errMsg(e){
+  const c = e && e.code;
+  if (c === "no_mcp") return "Esta vista no tiene acceso al conector de Google Sheets. Pasa cuando abre el enlace alguien que no tiene Google Sheets conectado en claude.ai. Para compartir el tablero usa la versión del portal (GitHub Pages), o pide a la persona conectar Google Sheets en claude.ai → Configuración → Conectores. Mientras tanto puedes usar «Cargar Excel local».";
+  if (e && e.name === "TypeError") return "El navegador no pudo descargar la hoja (Failed to fetch). Pasa al abrir el HTML como archivo local o en un sitio que bloquea conexiones externas. Publícalo en el portal (GitHub Pages) y confirma que la hoja esté compartida como «Cualquier persona con el enlace · Lector».";
+  if (c === "server_not_connected" || c === "selection_required") return "Google Sheets no está conectado para tu cuenta. Agrégalo en claude.ai → Configuración → Conectores y pulsa Reintentar.";
+  if (c === "needs_reauth") return "Tu sesión de Google Sheets expiró. Reconéctala en claude.ai → Configuración → Conectores y pulsa Reintentar.";
+  if (c === "not_in_manifest" || c === "approval_required" || c === "consent_required") return "El tablero necesita tu permiso para leer Google Sheets. Pulsa Reintentar y acepta el aviso.";
+  if (c === "tool_error") return `Google Sheets respondió con error (¿cambió el nombre de una pestaña?). ${esc(e.message || "")}`;
+  if (c === "cancelled") return "Google Sheets tardó más de 90 s en responder.";
+  if (c === "server_unavailable" || c === "upstream_error") return "Google Sheets no respondió. Intenta de nuevo en unos segundos.";
+  if (e && e.name === "AbortError") return `La hoja tardó más de ${CONFIG.timeoutMs / 1000} s en responder.`;
+  return `No se pudo leer la hoja (${esc((e && (e.message || e.code)) || "error desconocido")}). Verifica que esté compartida como “Cualquier persona con el enlace”.`;
+}
+function renderAll(){
+  if (!M) return;
+  if (!ORDER.includes(S.tab)) S.tab = "revisar";
+  renderFilters(); renderKpis(); renderTabs(); renderView(); writeHash();
+  $("#foot").textContent = `${CONFIG.UDN} · Fuente: ${SOURCE} · ${nf.format(M.units.length)} unidades ODO · ${nf.format(M.tr.length)} renglones TRINOMIO · ${nf.format(M.rh.length)} operadores RH · ${nf.format(M.con.length)} plantas en CONTRATO.`;
+}
+
+/* =================== Arranque =================== */
+const CACHE_KEY = "lipu_flota_cache_v2";
+let LOADING = false;
+async function load(manual){
+  if (LOADING) return; LOADING = true;
+  if (!M || manual) { $("#loader").hidden = false; $("#loaderHelp").hidden = true; }
+  const msg = t => { $("#loaderMsg").textContent = t; };
+  const helpT = setTimeout(() => { $("#loaderHelp").hidden = false; }, 8000);
+  $("#alerts").innerHTML = "";
+  try {
+    msg("Conectando con Google Sheets…");
+    if (MCP === null) MCP = await getMcp();
+    SOURCE = MCP ? "Google Sheets (conector)" : "Google Sheets";
+    const raw = {};
+    msg("Leyendo SABANA (1 de 4)…"); raw.sabana = await loadRange("sabana");
+    msg("Leyendo RH, TRINOMIO y CONTRATO (4 de 4)…");
+    const rest = ["rh","trinomio","contrato"]; const vals = await Promise.all(rest.map(k => loadRange(k))); rest.forEach((k, i) => raw[k] = vals[i]);
+    if (!raw.sabana.length) throw { code:"tool_error", message:"La pestaña SABANA llegó vacía." };
+    msg("Armando el tablero…");
+    RAW = raw; M = build(raw); ROWS_READ = Object.values(raw).reduce((a, r) => a + r.length, 0);
+    setCorte(new Date(), false);
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t:Date.now(), raw })); } catch(e){}
+    renderAll();
+  } catch (e) {
+    let cached = null; try { cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); } catch(x){}
+    if (cached && cached.raw && !M) { RAW = cached.raw; M = build(RAW); SOURCE = "copia local"; ROWS_READ = Object.values(RAW).reduce((a, r) => a + r.length, 0); setCorte(new Date(cached.t), true); renderAll(); }
+    showAlert("bad", `<b>Sin conexión a la hoja.</b> ${errMsg(e)}${M ? " Se muestra el último dato bueno." : ""}`, [["Reintentar", () => { MCP = null; load(true); }], ["Cargar Excel local", () => $("#fileIn").click()]]);
+  } finally { clearTimeout(helpT); LOADING = false; $("#loader").hidden = true; }
+}
+$("#lhRetry").addEventListener("click", () => { LOADING = false; MCP = null; load(true); });
+$("#lhFile").addEventListener("click", () => $("#fileIn").click());
+$("#fileIn").addEventListener("change", async ev => {
+  const f = ev.target.files[0]; if (!f || !window.XLSX) return;
+  try {
+    const wb = XLSX.read(await f.arrayBuffer(), { type:"array" });
+    const sh = n => { const s = wb.Sheets[n] || wb.Sheets[Object.keys(wb.Sheets).find(x => norm(x) === norm(n))]; return s ? XLSX.utils.sheet_to_json(s, { header:1, raw:false, defval:"" }) : []; };
+    const raw = { sabana:sh("SABANA"), rh:sh("RH"), trinomio:sh("TRINOMIO"), contrato:sh("CONTRATO") };
+    if (!raw.sabana.length) throw new Error("El archivo no trae la pestaña SABANA.");
+    RAW = raw; M = build(raw); SOURCE = "Excel local · " + f.name; ROWS_READ = Object.values(raw).reduce((a, r) => a + r.length, 0);
+    setCorte(new Date(), false); $("#alerts").innerHTML = ""; $("#loader").hidden = true; LOADING = false; renderAll();
+  } catch (e) { showAlert("bad", `No se pudo leer el Excel: ${esc(e.message)}`); }
+  ev.target.value = "";
+});
+
+let qT; $("#fQ").addEventListener("input", e => { clearTimeout(qT); qT = setTimeout(() => { S.q = e.target.value; renderAll(); $("#fQ").focus(); }, 250); });
+$("#btnClear").addEventListener("click", () => { FILTERS.forEach(f => S.f[f.k].clear()); S.q = ""; S.quick = { rev:false, crit:false, sin:false }; S.chip = {}; renderAll(); });
+document.querySelectorAll(".qchip").forEach(b => b.addEventListener("click", () => { S.quick[b.dataset.q] = !S.quick[b.dataset.q]; renderAll(); }));
+function toggleSide(force){ const L = $("#layout"); const col = force !== undefined ? force : !L.classList.contains("collapsed"); L.classList.toggle("collapsed", col); $("#scrim").hidden = col || innerWidth > 860; try { localStorage.setItem("trx_sidebar_collapsed", col ? "1" : "0"); } catch(e){} if (S.tab === "resumen" && M) setTimeout(renderView, 60); }
+$("#burger").addEventListener("click", () => toggleSide());
+$("#scrim").addEventListener("click", () => toggleSide(true));
+$("#btnAlert").addEventListener("click", () => { S.tab = "revisar"; S.chip.revisar = "Crítico"; renderAll(); });
+$("#btnReload").addEventListener("click", () => { if (MCP && MCP.invalidate) MCP.invalidate(CONFIG.conector).catch(() => {}); load(true); });
+window.addEventListener("hashchange", () => { const t = location.hash.slice(1).split("&")[0]; if (V[t] && t !== S.tab) { S.tab = t; renderAll(); } });
+setInterval(() => { if (document.visibilityState === "visible" && $("#modal").hidden) load(false); }, CONFIG.autoRecargaMin * 60000);
+
+load(false);
+</script>
+
+</body>
+</html>
