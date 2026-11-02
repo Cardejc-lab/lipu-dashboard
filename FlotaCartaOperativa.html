@@ -958,7 +958,7 @@ function renderKpis(){
   const cobTag = cob === null ? ["N/A","t-mute"] : cob > 102 ? ["Excedente","t-warn"] : cob >= cu.verde ? ["En meta","t-ok"] : cob >= cu.ambar ? ["Abajo de meta","t-warn"] : ["Crítico","t-bad"];
   $("#kpis").innerHTML = [
     kpi({ id:"flota", l:"Flota ODO", v:fInt(tot), c:`${fInt(conRuta)} con ruta · ${fPct(conRuta, tot)}`, color:"var(--navy3)" }),
-    kpi({ id:"cob", l:"Planta vs contrato", v:cob === null ? "N/A" : cob.toFixed(1) + "%", c:`${fInt(asig)} unidades asignadas vs ${fInt(contr)} contratadas · ${fInt(falt.length)} plantas con faltante · meta ${cu.verde}%`, color:"var(--info)", tag:cobTag[0], tagc:cobTag[1] }),
+    kpi({ id:"cob", l:"Planta vs contrato", v:`${fInt(asig)} / ${fInt(contr)}`, c:`unidades asignadas / contratadas · ${cob === null ? "N/A" : cob.toFixed(1) + "%"} de cobertura · ${fInt(falt.length)} plantas con faltante · meta ${cu.verde}%`, color:"var(--info)", tag:cobTag[0], tagc:cobTag[1] }),
     kpi({ id:"asig", l:"Asignadas con operador", v:fInt(asg.length), c:`${fPct(asg.length, tot)} de la flota`, color:"#5FA36F", tag:"Operando", tagc:"t-ok" }),
     kpi({ id:"sinasig", l:"Unidades sin asignar", v:fInt(tot - asg.length), c:`${fPct(tot - asg.length, tot)} de la flota · disponibles, taller, corralón, sin operador`, color:"#AE2F25", tag:(tot - asg.length) ? "Ver detalle" : "OK", tagc:(tot - asg.length) ? "t-bad" : "t-ok" }),
     kpi({ id:"disp", l:"Disponibles", v:fInt(disp.length), c:`para ${fInt(falt.reduce((a,p) => a - p.diff, 0))} faltantes en ${fInt(falt.length)} plantas`, color:"#2563eb", tag: disp.length ? "Asignables" : "Sin reserva", tagc: disp.length ? "t-info" : "t-bad" }),
