@@ -449,6 +449,12 @@ function build(raw){
     p.taller = es.filter(e => /TALLER|CORRAL|FUERA/.test(stKey(e.u.estatus))).length;
     p.operativas = p.asignadas - p.taller;
     p.noCumple = es.filter(e => p.antMax !== null && e.u.antUnidad !== null && e.u.antUnidad > p.antMax).length;
+    /* Modelo contratado = año actual − antigüedad máxima del contrato */
+    p.modMin = p.antMax !== null ? new Date().getFullYear() - p.antMax : null;
+    const yrs = es.map(e => num(e.u.anio)).filter(y => y !== null).sort((a,b) => a - b);
+    p.modAsig = yrs.length ? (yrs[0] === yrs[yrs.length - 1] ? String(yrs[0]) : `${yrs[0]} – ${yrs[yrs.length - 1]}`) : "";
+    p.cumpleMod = p.modMin === null ? null : es.filter(e => e.u.antUnidad !== null && e.u.antUnidad <= p.antMax).length;
+    p.modEstado = p.modMin === null ? "Sin contrato" : !p.asignadas ? "Sin unidades" : p.noCumple ? `No cumple (${p.noCumple})` : !p.cumpleMod ? "Sin año capturado" : "Cumple";
   });
   const plantas = [...pl.values()].map(p => {
     const diff = p.contrato === null ? null : p.asignadas - p.contrato;
@@ -850,8 +856,11 @@ V.plantas = { label:"Planta vs contrato", ic:"📋", rows:() => M.plantas,
     { k:"taller", l:"Taller / corralón / fuera", n:true, h:p => p.taller ? `<span class="pos">${p.taller}</span>` : "0" },
     { k:"sinOp", l:"Unidades sin operador", n:true, h:p => p.sinOp ? `<span class="pos">${p.sinOp}</span>` : "0" },
     { k:"noOdo", l:"No existen en ODO", n:true, h:p => p.noOdo ? `<span class="neg">${p.noOdo}</span>` : "0" },
-    { k:"noCumple", l:"No cumple antig.", n:true, h:p => p.noCumple ? `<span class="neg">${p.noCumple}</span>` : "0" },
-    { k:"antMax", l:"Antig. máx.", n:true, h:p => fInt(p.antMax) } ] };
+    { k:"modMin", l:"Modelo contratado", n:true, h:p => p.modMin === null ? "N/A" : `${p.modMin} o más` },
+    { k:"modAsig", l:"Modelos asignados", h:p => p.modAsig || "–" },
+    { k:"modEstado", l:"¿Cumple modelo?", h:p => pill(p.modEstado, p.modEstado === "Cumple" ? "#5FA36F" : /^No cumple/.test(p.modEstado) ? "#AE2F25" : "#8a94ad"), s:p => p.noCumple ? -p.noCumple : p.modMin === null ? 1 : 0 },
+    { k:"cumpleMod", l:"Cumplen / no cumplen", n:true, h:p => p.cumpleMod === null ? "N/A" : `${nf.format(p.cumpleMod)} / ${p.noCumple ? `<span class="neg">${nf.format(p.noCumple)}</span>` : "0"}` },
+    { k:"antMax", l:"Antig. máx.", n:true, h:p => p.antMax === null ? "N/A" : `${fInt(p.antMax)} años` } ] };
 V.carta = { label:"Pre carta operativa", ic:"🗂", rows:() => M.units.filter(u => u.asig > 0),
   explain:"Unidades con ruta en TRINOMIO, agrupadas por planta: operador (el primero que no es VACANTE), todos los operadores si la unidad es compartida y validación de antigüedad contra contrato. Base para subir al sistema.",
   chips:[["","Todas"],["OK","Con operador"],["VAC","Sin operador"],["NO CUMPLE","No cumple antigüedad"],["DUP","Unidad compartida (2+)"],["TALLER","En taller"]],
@@ -1093,7 +1102,7 @@ function recordHtml(r){
   if (r.kind === "planta") {
     let html = V.plantas.cols.map(c => kv(c.l, cell(c, r))).join("");
     const es = r.uList || [];
-    html += `<p class="msec">Unidades en trinomio para esta planta (${es.length})</p>` + (es.length ? es.map(e => kv(e.unidad, `${e.u ? stPill(e.u.estatus) : pill("No existe en ODO", "#7A1517")} ${esc(e.rutas.join(" / ") || "–")} · ${e.conOp ? esc(e.ops.join(" / ")) : '<span class="pos">Sin operador</span>'}${e.u && r.antMax !== null && e.u.antUnidad !== null && e.u.antUnidad > r.antMax ? ' · <span class="neg">No cumple antigüedad</span>' : ""}`)).join("") : `<p class="empty">Sin unidades asignadas.</p>`);
+    html += `<p class="msec">Unidades en trinomio para esta planta (${es.length})</p>` + (es.length ? es.map(e => kv(e.unidad, `${e.u ? stPill(e.u.estatus) : pill("No existe en ODO", "#7A1517")} ${esc(e.rutas.join(" / ") || "–")} · ${e.conOp ? esc(e.ops.join(" / ")) : '<span class="pos">Sin operador</span>'}${e.u ? ` · Modelo ${esc(e.u.anio || "–")}` : ""}${e.u && r.modMin !== null && e.u.antUnidad !== null ? (e.u.antUnidad > r.antMax ? ` · <span class="neg">No cumple (contrato ${r.modMin} o más)</span>` : ' · <span class="okt">Cumple modelo</span>') : ""}`)).join("") : `<p class="empty">Sin unidades asignadas.</p>`);
     return { title:`Planta ${r.planta} · ${r.estado}`, html };
   }
   const vv = V[r.kind === "operador" ? "operadores" : r.kind === "comentario" ? "coment" : r.kind === "rhx" ? "rhdet" : "extra"];
