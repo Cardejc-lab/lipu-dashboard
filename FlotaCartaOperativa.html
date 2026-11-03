@@ -218,6 +218,7 @@ td.wrapc{white-space:normal;min-width:240px}
   <button class="tbtn alertbtn" id="btnAlert" type="button" hidden>⚠ <span id="alertN">0</span> críticos</button>
   <button class="tbtn" id="btnReload" type="button">↻ Recargar</button>
   <button class="tbtn green" id="btnExcel" type="button">⬇ Excel</button>
+  <button class="tbtn green" id="btnCarta" type="button" title="PLANTA, RUTA, JEFE, COORDINADOR, ID VEH, NÓMINA OP, NOMBRE OP, Cliente-Ruta, Unidad de negocio, Gerente">⬇ Excel carta operativa</button>
 </header>
 
 <div class="layout" id="layout">
@@ -265,6 +266,7 @@ td.wrapc{white-space:normal;min-width:240px}
 /* =================== CONFIG (Lipu Mty) =================== */
 const CONFIG = {
   UDN: "Lipu Monterrey",
+  unidadNegocio: "LIPU MONTERREY",   /* valor de la columna «Unidad de negocio» del Excel de carta operativa */
   SHEET_ID: "130_M-pzEUv2MJ937Msl7FcSf2WaRpqgv4CC8BCM4rjQ",
   conector: "Google Sheets",
   hojas: { sabana:["SABANA","A4:CD1000"], rh:["RH","A1:M3000"], trinomio:["TRINOMIO","A1:H3000"], contrato:["CONTRATO","A1:H300"] },
@@ -1154,6 +1156,25 @@ $("#btnExcel").addEventListener("click", () => {
   XLSX.utils.book_append_sheet(wb, sheetOf("rhdet", M.rhx.filter(r => pass(r)).sort(sorter("rhdet"))), "Desglose RH vs Trinomio");
   XLSX.utils.book_append_sheet(wb, sheetOf("plantas", M.plantas.filter(r => pass(r)).sort(sorter("plantas"))), "Planta vs contrato");
   saveWb(wb, "PreCartaOperativa");
+});
+
+/* =================== Excel carta operativa (formato de carga) =================== */
+/* Un renglón por ruta del TRINOMIO; respeta los filtros. JEFE = jefe del operador en RH. */
+$("#btnCarta").addEventListener("click", () => {
+  if (!M) return; if (!window.XLSX) { saveWb(null, "x"); return; }
+  try {
+    const jefe = new Map(M.rh.filter(x => x.nomina).map(x => [x.nomina, x.jefe]));
+    const rows = M.tr.filter(t => !isNoRuta(t.ruta) && pass(t))
+      .sort((a,b) => norm(a.planta).localeCompare(norm(b.planta), "es") || norm(a.ruta).localeCompare(norm(b.ruta), "es", {numeric:true}));
+    const vac = t => isVac(t.nombre);
+    const aoa = [["PLANTA","RUTA","JEFE","COORDINADOR","ID VEH","NOMINA OP","NOMBRE OP","Cliente-Ruta","Unidad de negocio","Gerente"],
+      ...rows.map(t => [t.planta, t.ruta, vac(t) ? "" : (jefe.get(t.nomina) || ""), t.coord, t.unidad || "", vac(t) ? "" : t.nomina, vac(t) ? "VACANTE" : t.nombre,
+        `${t.planta}-${t.ruta}`, CONFIG.unidadNegocio, t.gerente])];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"] = [32,26,30,22,10,12,34,48,18,14].map(w => ({ wch:w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Carta operativa");
+    saveWb(wb, "CartaOperativa");
+  } catch (e) { showAlert("info", `No se pudo generar el Excel: ${esc(e.message || e)}`); }
 });
 
 /* =================== Alertas, corte y render =================== */
