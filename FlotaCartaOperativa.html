@@ -816,9 +816,10 @@ function rhxTop(){
       </div>
       ${wfHtml("wf_rh1", "Gráfica de integración de la plantilla", [
         { l:"Plantilla RH", v:tot, type:"total", c:"#066a38", open:op("pl") },
-        ...tDisp.map(t => ({ l:t, v:sinU.filter(r => r.tipo === t).length, type:"dec", c:TIPC(t), open:op("s1_" + tiposSin.indexOf(t)) })),
-        { l:"Subtotal", v:tot - lDisp.length, type:"total", c:"#3d5446", tip:"Plantilla − disponibles sin unidad", open:op("s1_disp") },
-        ...tNoDisp.map(t => ({ l:t, v:sinU.filter(r => r.tipo === t).length, type:"dec", c:TIPC(t), open:op("s1_" + tiposSin.indexOf(t)) })),
+        /* Se dibuja al revés: Con unidad → +Activo → +Vacaciones → Plantilla RH disponible → +no disponibles → Plantilla RH */
+        ...[...tNoDisp].reverse().map(t => ({ l:t, v:sinU.filter(r => r.tipo === t).length, type:"dec", c:TIPC(t), open:op("s1_" + tiposSin.indexOf(t)) })),
+        { l:"Plantilla RH disponible", v:tot - lNoDisp.length, type:"total", c:"#3d5446", tip:"Con unidad + disponibles sin unidad", open:op("s1_disp") },
+        ...[...tDisp].reverse().map(t => ({ l:t, v:sinU.filter(r => r.tipo === t).length, type:"dec", c:TIPC(t), open:op("s1_" + tiposSin.indexOf(t)) })),
         { l:"Con unidad", v:conU.length, type:"total", c:"#5FA36F", open:op("conU") } ])}
     </section>`;
   const dif2 = rows.filter(r => !(r.activo && r.triEst === "Con unidad"));
@@ -1108,9 +1109,9 @@ V.taller = { label:"Taller", ic:"🔧", rows:() => M.tal, top:() => talTop(),
   sort:{k:"costo",dir:-1}, sortLabel:"costo estimado", group:{ by:r => r.clasif, label:"Estatus de reparación" },
   cols:[
     { k:"unidad", l:"Unidad", b:true },
+    { k:"falla", l:"Observaciones (falla / estatus)", w:true },
     { k:"clasif", l:"Estatus reparación", h:r => pill(r.clasif, (CLT[r.clasif] || { c:"#8a94ad" }).c), s:r => r.sevN },
     { k:"familia", l:"Familia" },
-    { k:"falla", l:"Falla", w:true },
     { k:"refaccion", l:"Refacción" },
     { k:"sic", l:"SIC" },
     { k:"fComp", l:"Fecha compromiso" },
@@ -1120,6 +1121,35 @@ V.taller = { label:"Taller", ic:"🔧", rows:() => M.tal, top:() => talTop(),
     { k:"ruta", l:"Ruta" },
     { k:"operador", l:"Operador" },
     { k:"marca", l:"Marca" },
+    { k:"anio", l:"Año", n:true } ] };
+/* Listas de detalle: taller con observaciones primero; corralón con status y motivo primero */
+V.vTaller = { label:"Unidades en taller", ic:"🔧", rows:() => M.units.filter(u => stKey(u.estatus) === "EN TALLER"), sort:{k:"costo",dir:-1}, sortLabel:"costo",
+  cols:[
+    { k:"unidad", l:"Unidad", b:true },
+    { k:"falla", l:"Observaciones (falla / estatus)", w:true },
+    { k:"clasif", l:"Estatus reparación", h:u => u.clasif ? pill(clasifLbl(u.clasif), (CLT[clasifLbl(u.clasif)] || { c:"#8a94ad" }).c) : "–" },
+    { k:"familia", l:"Familia" },
+    { k:"refaccion", l:"Refacción" },
+    { k:"fCompromiso", l:"Fecha compromiso" },
+    { k:"costo", l:"Costo ref.", n:true, h:u => u.costo === null ? "–" : money2.format(u.costo) },
+    { k:"planta", l:"Planta", v:u => u.planta || "Sin ruta" },
+    { k:"ruta", l:"Ruta" },
+    { k:"operador", l:"Operador" },
+    { k:"marca", l:"Marca / modelo", v:u => [u.marca, u.modelo.replace(u.marca + "/","")].filter(Boolean).join(" ") },
+    { k:"anio", l:"Año", n:true } ] };
+V.vCorralon = { label:"Unidades en corralón", ic:"🚧", rows:() => M.units.filter(u => stKey(u.estatus) === "EN CORRALÓN"), sort:{k:"cDias",dir:-1}, sortLabel:"días en corralón",
+  cols:[
+    { k:"unidad", l:"Unidad", b:true },
+    { k:"cStatus", l:"Status", w:true, h:u => u.cStatus ? esc(u.cStatus) : (stKey(u.estatus) === "FUERA" ? esc("ODO: " + u.statusOdo) : "–") },
+    { k:"cMotivo", l:"Motivo", w:true },
+    { k:"cDias", l:"Días en corralón", n:true, h:u => u.cDias === null ? "–" : `<span class="${u.cDias >= CONFIG.umbrales.corralon.rojo ? "neg" : u.cDias >= CONFIG.umbrales.corralon.ambar ? "pos" : ""}">${nf.format(u.cDias)}</span>` },
+    { k:"cFecha", l:"Fecha ingreso", h:u => fDate(u.cFecha), s:u => u.cFecha ? u.cFecha.getTime() : 0 },
+    { k:"cMonto", l:"Monto", n:true, h:u => u.cMonto === null ? "–" : money2.format(u.cMonto) },
+    { k:"cPlanta", l:"Planta corralón" },
+    { k:"planta", l:"Planta (trinomio)", v:u => u.planta || "Sin ruta" },
+    { k:"ruta", l:"Ruta" },
+    { k:"operador", l:"Operador" },
+    { k:"marca", l:"Marca / modelo", v:u => [u.marca, u.modelo.replace(u.marca + "/","")].filter(Boolean).join(" ") },
     { k:"anio", l:"Año", n:true } ] };
 V.carta = { label:"Pre carta operativa", ic:"🗂", rows:() => M.units.filter(u => u.asig > 0),
   explain:"Unidades con ruta en TRINOMIO, agrupadas por planta: operador (el primero que no es VACANTE), todos los operadores si la unidad es compartida y validación de antigüedad contra contrato. Base para subir al sistema.",
@@ -1208,11 +1238,13 @@ function flushWF(){
         scales:{ x:{ beginAtZero:true, ticks:{ callback:v => money0.format(v), font:{ size:10.5 } }, grid:{ color:"#e3efdd" } }, y:{ grid:{ display:false }, ticks:{ font:{ size:11 } } } },
         onHover:(e, el) => { e.native.target.style.cursor = el.length ? "pointer" : "default"; },
         onClick:(e, el) => { if (el.length) open(el[0].index); } } }); });
-  q.forEach(({ id, steps }) => {
+  q.forEach(({ id, steps:st0 }) => {
+    /* Se lee del resultado al deseado: inicia en el resultado y va sumando hasta el total (p. ej. Asignadas → Flota) */
+    const steps = [...st0].reverse().map(st => st.type === "total" ? st : { ...st, type: st.type === "dec" ? "inc" : "dec" });
     const cv = document.getElementById(id); if (!cv) return;
     if (WF[id]) { try { WF[id].destroy(); } catch(e){} }
     let run = 0; const data = [], lab = [], runs = [];
-    const base0 = steps.length && steps[0].v ? steps[0].v : 0;
+    const base0 = steps.length && steps[steps.length - 1].v ? steps[steps.length - 1].v : 0;
     const pctL = steps.map(st => base0 ? (st.v / base0 * 100).toFixed(1) + "%" : "N/A");
     steps.forEach(st => {
       if (st.type === "total") { data.push([0, st.v]); run = st.v; lab.push(fInt(st.v)); }
@@ -1237,6 +1269,24 @@ function flushWF(){
           ctx.font = "600 10.5px Inter, Arial, sans-serif"; ctx.fillStyle = "#5f7a68"; ctx.fillText(pctL[i], b.x, top - 6);
           if (i < meta.data.length - 1) { const nb = meta.data[i + 1], yy = y.getPixelForValue(runs[i]);
             ctx.strokeStyle = "#9bb5a3"; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(b.x + b.width / 2, yy); ctx.lineTo(nb.x - nb.width / 2, yy); ctx.stroke(); ctx.setLineDash([]); }
+        });
+        /* Suma de cada grupo de barras entre dos totales (p. ej. −21 y −25) */
+        const segs = []; let cur = null;
+        steps.forEach((st, i) => { if (st.type === "total") { if (cur && cur.idx.length >= 2) segs.push(cur); cur = { idx:[] }; } else if (cur) cur.idx.push(i); });
+        const area = ch.chartArea;
+        segs.forEach(sg => {
+          const bs = sg.idx.map(i => meta.data[i]);
+          const x0 = Math.min(...bs.map(b => b.x - b.width / 2)), x1 = Math.max(...bs.map(b => b.x + b.width / 2)), xc = (x0 + x1) / 2;
+          const low = Math.max(...bs.map(b => Math.max(b.y, b.base))), space = area.bottom - low;
+          if (space < 70) return;
+          const sum = sg.idx.reduce((a, i) => a + (steps[i].type === "dec" ? -steps[i].v : steps[i].v), 0);
+          const yc = low + space * 0.45, big = Math.max(20, Math.min(34, (x1 - x0) / 4));
+          ctx.strokeStyle = "#9bb5a3"; ctx.lineWidth = 1.5; ctx.setLineDash([]);
+          ctx.beginPath(); ctx.moveTo(x0 + 2, yc - big - 8); ctx.lineTo(x0 + 2, yc - big - 14); ctx.lineTo(x1 - 2, yc - big - 14); ctx.lineTo(x1 - 2, yc - big - 8); ctx.stroke();
+          ctx.font = `800 ${big}px Inter, Arial, sans-serif`; ctx.fillStyle = sum < 0 ? "#AE2F25" : sum > 0 ? "#066a38" : "#5f7a68"; ctx.textAlign = "center";
+          ctx.fillText((sum < 0 ? "−" : sum > 0 ? "+" : "") + fInt(Math.abs(sum)), xc, yc);
+          ctx.font = "600 11px Inter, Arial, sans-serif"; ctx.fillStyle = "#5f7a68";
+          ctx.fillText(base0 ? (Math.abs(sum) / base0 * 100).toFixed(1) + "% del total" : "", xc, yc + 16);
         });
         ctx.restore(); } }] });
   });
@@ -1267,8 +1317,8 @@ function renderKpis(){
     cob:{ title:"Planta vs contrato", rows:pl, view:"plantas" },
     disp:{ title:"Unidades disponibles", rows:disp, view:"unidades" },
     sinop:{ title:"Rutas sin operador", rows:sinop, view:"unidades" },
-    tal:{ title:"Unidades en taller", rows:tal, view:"unidades" },
-    cor:{ title:"Corralón / fuera de operación", rows:[...cor, ...fue], view:"unidades" },
+    tal:{ title:"Unidades en taller", rows:tal, view:"vTaller" },
+    cor:{ title:"Corralón / fuera de operación", rows:[...cor, ...fue], view:"vCorralon" },
     nc:{ title:"No cumplen antigüedad de contrato", rows:nc, view:"carta" },
     ops:{ title:"Operadores sin unidad", rows:ops, view:"operadores" },
     ex:{ title:"Trinomio de más", rows:ex, view:"extra" },
@@ -1294,8 +1344,8 @@ function renderKpis(){
     i_guard:{ title:"Guardia (disponibles)", rows:iGuard, view:"unidades" },
     i_sinop:{ title:"Ruta / sin operador", rows:iSinOp, view:"unidades" },
     i_op:{ title:"Subtotal operativas sin asignar", rows:iOper, view:"unidades" },
-    i_tal:{ title:"En taller", rows:iTal, view:"unidades" },
-    i_cor:{ title:"En corralón", rows:iCor, view:"unidades" },
+    i_tal:{ title:"En taller", rows:iTal, view:"vTaller" },
+    i_cor:{ title:"En corralón", rows:iCor, view:"vCorralon" },
     i_noop:{ title:"Subtotal no operativas", rows:iNoOp, view:"unidades" } });
   const linea = (id, l, v, sub, c, pct) => `<button type="button" class="il comp" data-kpi="${id}" style="--c:${c}"><span class="ll">${esc(l)}</span><span class="lv">${fInt(v)}</span><span class="ls">${sub}</span><span class="ib"><i style="width:${pct}%"></i></span></button>`;
   const item = (id, l, n, c, sub) => `<button type="button" class="il comp" data-kpi="${id}" style="--c:${c}"><span class="ll">${esc(l)}</span><span class="lv">${fInt(n)}</span><span class="ls">${fPct(n, dif)} · ${sub}</span><span class="ib"><i style="width:${dif ? n / dif * 100 : 0}%"></i></span></button>`;
@@ -1321,13 +1371,14 @@ function renderKpis(){
       <div class="il tot ${sumC === dif ? "" : "bad"}"><span class="ll">Total</span><span class="lv">${fInt(sumC)}</span><span class="ls">${fInt(iOper.length)} operativas + ${fInt(iNoOp.length)} no operativas · ${sumC === dif ? "cuadra con la diferencia" : `no cuadra: diferencia ${fInt(dif)}`}</span></div>
     </div>
     ${wfHtml("wf_main", "Gráfica de integración de la flota", [
+      /* Se dibuja al revés: Asignadas → +Ruta → +Guardia → +Disponibles → Flota disponible → +Corralón → +Taller → Flota */
       { l:"Flota", v:tot, type:"total", c:"#066a38", open:() => openKpi("flota") },
+      { l:"En taller", v:iTal.length, type:"dec", c:"#E07B39", open:() => openKpi("i_tal") },
+      { l:"En corralón", v:iCor.length, type:"dec", c:"#AE2F25", open:() => openKpi("i_cor") },
+      { l:"Flota disponible", v:tot - iNoOp.length, type:"total", c:"#3d5446", tip:"Asignadas + operativas sin asignar", open:() => openKpi("i_op") },
       { l:"Disponibles", v:iDisp.length, type:"dec", c:"#2563eb", open:() => openKpi("i_disp") },
       { l:"Guardia", v:iGuard.length, type:"dec", c:"#0891b2", open:() => openKpi("i_guard") },
       { l:"Ruta / sin operador", v:iSinOp.length, type:"dec", c:"#E9C34F", open:() => openKpi("i_sinop") },
-      { l:"Subtotal", v:tot - iOper.length, type:"total", c:"#3d5446", tip:"Flota − operativas sin asignar", open:() => openKpi("i_op") },
-      { l:"En taller", v:iTal.length, type:"dec", c:"#E07B39", open:() => openKpi("i_tal") },
-      { l:"En corralón", v:iCor.length, type:"dec", c:"#AE2F25", open:() => openKpi("i_cor") },
       { l:"Asignadas", v:iAsg.length, type:"total", c:"#5FA36F", open:() => openKpi("i_asg") } ])}`;
   $("#kpis").innerHTML = [
     kpi({ id:"cob", l:"Planta vs contrato", v:`${fInt(asig)} / ${fInt(contr)}`, c:`unidades asignadas / contratadas · ${cob === null ? "N/A" : cob.toFixed(1) + "%"} de cobertura · ${fInt(falt.length)} plantas con faltante · meta ${cu.verde}%`, color:"var(--info)", tag:cobTag[0], tagc:cobTag[1] }),
