@@ -116,6 +116,7 @@ main{min-width:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-ri
 .mainnav{position:sticky;top:var(--toph,64px);z-index:25;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;background:#fff;border:1px solid var(--border);border-radius:0 0 10px 10px;padding:3px 4px;box-shadow:0 2px 6px rgba(0,0,0,.10);margin-top:-16px}
 .mainnav::-webkit-scrollbar{display:none}
 .mtab{border:0;background:transparent;padding:5px 12px;cursor:pointer;color:var(--ink2);font-weight:700;font-size:13.5px;line-height:1.2;border-radius:6px;border-bottom:2px solid transparent;white-space:nowrap;display:flex;gap:8px;align-items:center}
+.msp{flex:1 0 8px}.mtab.mdl{background:var(--brand);color:var(--navy)}.mtab.mdl:hover{background:#d6df08}
 .mtab:hover{background:#eef7ea}.mtab:focus-visible{outline:2px solid var(--brand)}
 .mtab[aria-current="true"]{background:var(--navy);color:#fff;border-bottom-color:var(--brand)}
 .mtab .n{background:var(--line);color:var(--ink2);border-radius:999px;padding:0 7px;font-size:11px;font-variant-numeric:tabular-nums}
@@ -1417,10 +1418,13 @@ function renderKpis(T){
 }
 
 /* =================== Render: pestañas, tablas jerárquicas =================== */
-const MAIN_TABS = ["resumen","rhx","taller","carta","hist"];   /* vistas principales: barra superior */
+const MAIN_TABS = ["resumen","rhx","taller","plantas","carta","hist"];   /* vistas principales: barra superior */
 function renderMainNav(){
-  $("#mainnav").innerHTML = `<button class="mtab" type="button" data-go="integ">📈 Integración de flota</button>` + MAIN_TABS.filter(k => V[k]).map(k => { const v = V[k]; const n = v.rows ? rowsOf(k, true).length : null;
-    return `<button class="mtab" type="button" data-k="${k}" aria-current="${k === S.tab}">${v.ic} ${esc(v.label)}${n !== null ? `<span class="n">${nf.format(n)}</span>` : ""}</button>`; }).join("");
+  const tabBtn = k => { const v = V[k]; const n = v.rows ? rowsOf(k, true).length : null;
+    return `<button class="mtab" type="button" data-k="${k}" aria-current="${k === S.tab}">${v.ic} ${esc(v.label)}${n !== null ? `<span class="n">${nf.format(n)}</span>` : ""}</button>`; };
+  $("#mainnav").innerHTML = tabBtn("resumen") + `<button class="mtab" type="button" data-go="integ">📈 Integración de flota</button>` + MAIN_TABS.filter(k => k !== "resumen" && V[k]).map(tabBtn).join("") +
+    `<span class="msp"></span><button class="mtab mdl" type="button" id="btnRanking" title="Base para Ranking: PLANTA, RUTA, JEFE, COORDINADOR, ID VEH, NOMINA OP, NOMBRE OP, Cliente-Ruta, Unidad de negocio, Gerente">⬇ Ranking</button>`;
+  $("#btnRanking").addEventListener("click", rankingXlsx);
   const toph = () => { const h = $(".top"); if (h) document.documentElement.style.setProperty("--toph", h.offsetHeight + "px"); return h ? h.offsetHeight : 0; };
   toph();
   const goInteg = $('.mtab[data-go="integ"]'); goInteg.addEventListener("click", () => { const y = $("#integ").getBoundingClientRect().top + scrollY - toph() - $("#mainnav").offsetHeight - 8; scrollTo({ top:Math.max(0, y), behavior:"smooth" }); });
@@ -1621,6 +1625,28 @@ $("#btnCarta").addEventListener("click", () => {
     saveWb(wb, "CartaOperativa");
   } catch (e) { showAlert("info", `No se pudo generar el Excel: ${esc(e.message || e)}`); }
 });
+
+/* =================== Excel base Ranking =================== */
+/* Mismo universo que la carta operativa (un renglón por ruta del TRINOMIO, respeta filtros).
+   Formato Ranking: Cliente-Ruta = «PLANTA, RUTA»; Unidad de negocio = «LIPU Monterrey»;
+   sin unidad → ID VEH 1; ruta vacante → NOMINA OP 1000000 y NOMBRE OP vacío; JEFE = jefe del operador en RH o, si no hay, el coordinador. */
+function rankingXlsx(){
+  if (!M) return; if (!window.XLSX) { saveWb(null, "x"); return; }
+  try {
+    const jefe = new Map(M.rh.filter(x => x.nomina).map(x => [x.nomina, x.jefe]));
+    const rows = M.tr.filter(t => !isNoRuta(t.ruta) && pass(t))
+      .sort((a,b) => norm(a.planta).localeCompare(norm(b.planta), "es") || norm(a.ruta).localeCompare(norm(b.ruta), "es", {numeric:true}));
+    const num = v => { const c = clean(v); return /^\d+$/.test(c) ? Number(c) : c; };
+    const aoa = [["PLANTA","RUTA","JEFE","COORDINADOR","ID VEH","NOMINA OP","NOMBRE OP","Cliente-Ruta","Unidad de negocio","Gerente"],
+      ...rows.map(t => { const vac = isVac(t.nombre) || !clean(t.nomina);
+        return [t.planta, t.ruta, (!vac && jefe.get(t.nomina)) || t.coord || "", t.coord || "", clean(t.unidad) ? num(t.unidad) : 1, vac ? 1000000 : num(t.nomina), vac ? "" : t.nombre,
+          `${t.planta}, ${t.ruta}`, "LIPU Monterrey", t.gerente || ""]; })];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"] = [32,26,34,34,10,12,34,48,18,14].map(w => ({ wch:w }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Ranking");
+    saveWb(wb, "Ranking");
+  } catch (e) { showAlert("info", `No se pudo generar el Excel de Ranking: ${esc(e.message || e)}`); }
+}
 
 /* =================== Alertas, corte y render =================== */
 function showAlert(kind, html, actions){
