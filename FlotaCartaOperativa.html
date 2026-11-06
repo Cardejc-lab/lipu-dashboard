@@ -51,6 +51,15 @@ button,select,input{font:inherit;color:inherit}
 .ttl{display:flex;flex-direction:column;min-width:0;flex:1 1 140px}
 .ttl h1{margin:0;font-size:17px;font-weight:700;line-height:1.2}
 .ttl small{color:var(--brand3);font-size:12px;font-weight:600;letter-spacing:.02em}
+.semsel{background:var(--navy2);border:1px solid var(--navy3);color:#fff;border-radius:8px;padding:5px 8px;font-size:13px;font-weight:600;max-width:300px;cursor:pointer}
+.semsel option{color:#111;background:#fff}
+.dot.hist{background:#60a5fa!important}
+.dlt{display:inline-block;font-weight:700;font-size:11px;border-radius:999px;padding:0 7px;margin-right:6px;background:#e5e7eb;color:#374151;font-variant-numeric:tabular-nums}
+.dlt.up{background:#dbeafe;color:#1d4ed8}.dlt.dn{background:#fde2d3;color:#9a3412}
+.hwrap{display:grid;gap:14px}.hchart{position:relative;height:300px}
+.htab td.num small{display:block;font-size:10.5px;font-weight:700}.htab td.num small.up{color:#1d4ed8}.htab td.num small.dn{color:#9a3412}.htab td.num small.eq{color:var(--muted)}
+.htab tr.live td{background:#f1faee;font-weight:700}
+.hprog{padding:10px 12px;border-radius:8px;background:#eef6ea;color:var(--ink2);font-size:13px}
 .badge{display:inline-flex;align-items:center;gap:7px;background:var(--navy2);border:1px solid var(--navy3);border-radius:999px;padding:5px 11px;font-size:12px;color:#e3f3e3;font-variant-numeric:tabular-nums}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none}
 .dot.amber{background:#e9a23b}.dot.red{background:var(--red)}
@@ -265,6 +274,7 @@ main,.rtop{container-type:inline-size}
   <img class="logoL" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAABoCAYAAAAeoi7lAAAg40lEQVR42u2d6XOc13Xmf7fR2AiAC7iIi0hxkajV1GJrtWxLsixbtiMvkpdM4iqnnFQyqck/kI+pmvk8yVRN1YxnqUwqTsWJM7KjxJFlO7EWyhHNWCIlijIXURQXcAE3LATQy5kP97nG1TvdQHejATTY91R1oQF0v8t979meszkStRSZmXPOmd73AZ8FNgPHgH8ApgCcc2Zmq4GvAF8G8kABcDMcvgR0AqeAHwB7gBPOuVKT76EXeBC4H3gA6AFslmsz3QPAT4E/BcrAY8Dnge2zfL9WyunnBeBd4DhwHjgMHHDOXa33WZnZZuCbwMeBSaCrjus5CPwQeME5V6xznTuBO4CngYeA2b5vQIf2QCfwfD6xXGuRNlQHsB54BPgWsAp4FnjZOXfWzHJ6mMuAe4FP1XmaKQmBXzjnSrHQaRKVgQEx/2fqZAiAkxGjrpcAuL7JS10EhoEh4B1gBNhtZi8Co8A5oFzjuqwS8z/ewHXcoudQrOc56LMFM9sIfBG4vYFzH00CoIW0vhi7F7gZ+D1p/y3AFWn3QgWJXtSrI1gHM1BgxILeu/mUZUC33k/W+J0uWSlj+u6UjjOpe51swjU7ab88cJ1et2kNPyGB9TrwrHPuQNYqm0HgTemn1WCJBWuoS98pNUnoTkaCs9p5c9orOaCYBEDraP08cJ80ySPAPcBaPbRRbbBS9CBjKmhDd9bAIE4Pf7RJG6/aOUzaNWw4ajBPHXAVuAQMykzvjI7ZLKHlMusYTOIbZXHcDmw3s/8CvOOcm5hFCDitpUXMVet15Or4fDWakADoqXMN+pIAWEStrwfvxOhB+3xGWineoK7Gje9q0DxZf3s+KVfHtWfvwSowrGuy1eIqrE+/LIJtWqP/ZmZ76vTP3Tx9drY1q/VYv94HSQAsDuMHrT8goOxh+blbgJWS5pUYoVk0JfzApSdSkRmDNv0SsAn4tpn9CLjcZKxk0SkJgMVhfGdmO4BPA38IrJMVADAu/zc3zxvd0lOZNVKwHA/s9QDjzrnn5gEwzQEuAnaTALjGQ3sb5Os/KnN/m3zb8PCXLcQlLdCtl5toni/Ko9PPO4EvmtnRAAw28fjnAmjonCsnAXBtaXznnCtL6y+Xb/mbwBP42H5fBgBbyOfeDPBpNgbu189yHSCgMR3dsBZxCQaArwNnzOxPFYp1TRKQQ8CVZudiJAHQAszv35rDx3q/AXwSH+IbEPPZPABbtWzoZXjUu3seNWcHsLoBIdMtxijMo6XjGmDUPuApYMjMvu+cOz5HIRDWaGCBrL4kABYyrCfmX4nP0vocPilmQwWNtxhU1ubLy/fM1ZBFVq+gmQT26rgjNdxvGQ+AjggH6cz444vpRgRhfQfwJHDYzM7iwdS5WimWQMBrK5knj0/mWQ48gwf5dkamLQus9WeRVa5sZs3ehAXgKHAa+N9i6HqSdK6XIJgCVvDBMCB1RDrK+LyCYhT67BND5xsI1xk+V2AHPlnoTCbcSYoCtCfz58RIDg/qPaXXrcCaFgK1FkqqlMzsMFBsBNgys/dkQfQ0GBEpAyeAHwO/kDB2EiY36rh34UN8tSYqhWe4FfgI8J3o3iaaZA0kAbAUtb6YvwePFn8D+EKUu25t6gZNNbimHcBUCJc2qF1zwEXgu865n5jZOqZTjVdLuDws6+zOOs31TgmPW83s5wLvLuHTtcst4N4lAbAAAF+nc24qyt/fji/I+Dw+xNcrM7ge7XKtrVMPsBFfKNMTmdDLI/PcVchTN+CorIDcHMHAUOh0NvrbCV3fMXwx0J8wXUhTK9NuExZwWscpJxegvdD9gkoxV+LLQD8rP39NFNPvbPPlujWKfPTNAno5CYW8mPIvgL8T8w9naiBcjeFEJIipgNYHkPKn+HDsH8k1mO34cRTlw8BPJFAmSJmA7RHPj9D9h/BluE9rE2Vz99t5zTrkX98E7Krz69uBn0VWw1x863IUlfn/kHczGxFGsA8P7Lk6XIwdcvOKEjTlJACu/Y3dr4f+GPDbwIekDUpLGQmeBwrltheiSsVaE4GKYqZOfMXifO/RSeAsPlLRV2Pjkpzcm8EI/L3a4PN3SQC0eO6+tP5N0vi/KcZfkVapJoauRzC6hQLQhA2U5cMfwPcgqKdAqjdz3T0NWColCTyXBEDr5u73y4z9Oj6Z5x48sJfM/fmhIguf7nslajZSCw4Qnv3GCgVE9SZLXU0CoHU0flcUguoGbhDjP4YHffqXWpgnUV319NQZatyiEOMkPhRoS40HkwD4YFeeKZVmbsQX7PwGvlFHf4Tuu8T8bc/8gXrwkaChBo9RFNZhSQAsciafJHo/PqR3Cz6ZZ1eL5O4nml+Xo9QgExai/n/lOYClyQJYZNN/NR7dfxKfv78Dn4Laarn7iZpr8YX04NXUn7BVxtc6nBUj9zZwGV1RQ9ckABahA6/DJ6w8ge/O8zE9yFK7ZvC1IW3Ft2UbrDO6UQLOOefGzGwV0/UG9dBVCZCxJAAWGN3Hh3weBv6dNsB2rYfNc6OMRAvn24d2W9U+sxY/wOTeGoeXVHIdmEP/ghAGHKqx/XgSAE0w+3rl2z+Mr9N/MGqn3Mp+fnJD6stBmAAmqlUjKpX7fvxUpS11hnRDK6/TzL1nAYupcPJt5OfnJfE/L3P/Ppl9PS2K7lukXSxTv56aetYWp3cqSgou3XI976ti/j/Ct2nL13n8Ir4XwHn1f+giFQO1LPPn8V13b8M34vwCHuXvaMEGlMUKwyI69HJLNd98kYTArfhy36fw0Z1upgenTGkP3NOg9i0Ab8sCCHjARBIALZTCG0nlu/FJPA/iK9NWZ/rxtUrKLNFUmTK+Cu6SXvuAt6JNlrQ/Nc3re5rKXYpLDZbwhmd1CngBOKL5fMXIUksCYBGYvkvMU3TOFfS3tcBHgd/F13uvqnN00nxreos0UjBRy8D70ix7gVeAN/BFNeOLkCa71HGArHUXBH95jsVbvwJedc5digRL91J0A/LXiMYfBArOuWGBfLfjM/h+B1+S2tUiIF84f0eEOYQ00nfxI6p3a4MNAe8658YTLze1IaibYzfkYeDn+ErF2CW4kATA4iH7w0CvmW3DD9f8Gj60s2YR6/RNvmZ3ZvOV8eOvS/i59Lul9Q/jZ9UfcM5NZLIUAexaG0u1RK2KQ7LKJjPhvBIJA1iUhJ5l+GGaH8a35XpI5v7KRUL3LWNylqO226P4brmHgV/iO8vul1bJqxBpKkpSsnmcFpNCio2t2XvAr5xzF6OekFNmNjbHSE8SAHU24gypnLfLz78Xn8Lbv5B15RV8SpcxDd8U4x/Bd595Ax9DvggMh4kwilaUZNWUK7g53cBkk6yAMMO+3KQJN9cyBe3eiQdi/07uWjMEamc0kXhRBFp+iQ7X7Mdn7t0pX/+LeHR/IU392LrIRf78JB6wOw68JAFwRabjcWCkila3qJlmH742YTU+nDWFDzvtbhLSHATKisWaSbcEG5ucBp4FXgwuWkYY5xusJhwI4+AX0MULCvJyfgk26Fgupv+WtP66qHusWwCrJhYyhShm/77M+2PAyzLvD+HzvPulRUaVnNKh3vk9sh6KeKByowTbZnyi0kclAM7ju9fuyfiec6FNwkg6Un4B1Yp9QgLWFWn+v3XODWX2Y3g/WqfiCSnng4sU3SkDZ/JLLIX3dnyN/qfwY5oGFiCd0qqk407gO8IO4eP0L8s0PAcci0x7F8JFoQ2V3i/Dd6LdjO8ofINeq6J22ssiV2KFLIPJJmQCllqhHVWLa/xg2b0FfA/4LnDCzFY754YraNMhfIbhQB1auIQvPlsWhsss4Ggxa2kMIAL5usUQoef+J5mesbcQfn58/FPS6KMyxw8A/ybz8P1KDzDSFAPAgJndis8934wPUd6GT1G+vsK9TEZ5A80WcPM9HbiVNHmxhnFklfoS/gL4j8Ae59xJM1tRoegnHmByuU5/PhdNam50H3c3CHSPAKV8i5v7HTKDfwuf0tmjV3keuvBaBQ0wEdV9H8AjwD/Dx+0PC70vOOcmAkYhS6Un6hu4Tj7enbJa7pVA64vM7159tpRhytCToEfCoNjETMCONtH+uRlmNGRHkk/qGVzF52L8D+DHzrlR7cvLVazTnJ7nWB3VpLEreV4uYSPVgKsiN7ieuQmTwFS+hRs13AM8ju/Jd1uUzDMRSU2agPBahhnCz+MC8F7HI/h7tDFGnHNnsn3w9QCX48ORW6XlN+jax6TtN82QjRiQ+Z5Z0oUT1S7QJ2WtXcwWCUVCsBwx7pkoJ+OflZMxWiNjlhsAoMMsyRsbAQGVAbsJWE9jEYiOfAvl7oeL2ikm+iw+qWd9RmL2NBnEC5l5w3r4F6Jkj2P4OP3p2KePEnTWym/vM7NBfIHJLbrmW+W3L8sIK6viXuRaJFX5WkkBLusZ/kiCO9vJuahnHoDjgp77+xIYl4JLVwNjuqgnQD0t0MN+XmFm3c65yVqETeQer5HrWK5zwCkCNi/mWyGeH+Xu3wj8Ab5Dz/oKJnkzffoSPlx3WRthj5j9JWn8ydinF8OvAHKSvB+RsNqFR3JvlSk2UKV6LJ9q+lmouH2ICr0L/LV+5jICoOScuxq5bWXn3OQMDWRm2sclMzsRcivqsE6Du7ANn7h2pg4ruU/mfz4SQLk61ug0MJRvAT9/rZj9cTzCf7cWY66mr1Wo4c7p5k8J4DmFR3kPoQYPzrnzGabvxofLtsiM3yZf/kPRvPm4p9xUVNVXCWRKxIIlt/VnwrVWAbwjEgQuZrI6TfJCFRynFoV0k/bYmTq+t0Iu5qYIKO6qEwPK5xfRz++TBv0sPoPvUfnOc9H6VsGXRwt7VGbPm9IIbwJvxQyvTTAojb5KD+UOpmPz2yUAemYBEVOqbWu5A1apXDeO5TchEWdK1mQjx+gDNpvZgTqUZznamw3zSn4RfP1e3fAD+IEbz4jhuqIabTcHpg9hn+DjvSkE/3X9PBIh6iGrsFtWx1qBj4MSTlslnfszvny2ljy+5u7Ed60lBJxzxdkUEs2ZMXgaH15bXaf1uh14BF8fcrZG0HG5rOVtDYTzDQ9yn8ovpNaXINgmpn9GDNafQffzDSbmTMoMex8fmz+GT9B5Q8j9qUgYdePDcuvF6JvF+HmZVcGsz1c591KPn+ea2RQlAqVa1upZgIabo2L+QgN4VD/wFWCfc+47Zpar0MjUZbpCbRVmlq/jOYbPjQMHgWP5BUL3c3h0/CZJui9XGKnd00CDB/Bpsm/r5y+Bd6T133POjQWQx8xCpt12fBz+Zr0PKbEDFRbSrsGmnBb1sW9Km7HAWFmTus3oOPAavuVcI7QB+H0zO+Kc+9eZFJ+Syb6OB54bcTcLso5H8gug8UOp7rfwmXyrZe6XolzrWhjeRb7WKD52ewjfmukFgXinosSZDWY2KS3/sEC7zWL8NTLVcxU69eSv8S68v+5pr7XsNbPSHO81H1W1lTPNMmiTASOFOfYE6MWXsv+xmf2nyFWdYjpE3iNe+poEzaoGrbgutTM7n5/Hir1efIzyt2Xe7KgBpawWIw8S6zg+XHdK/vxbyqK6qPNvwoflNuvct4vxnXz8ZUzn11c6X7ug9VPaXLtkFY3NUQCEJJtlMi33ysx0bTZXckSv9Q3eewc+GrZebuwePauylNYt+PDzbXJTG0k8KstiPtH0WoBI62/F5+4/pgveXCNCHv99QlpqHz45Zy8+Tr9Xm7esDXeTqurulgTdKYBkfbRI1SwL18ahsrvwoc1m7IHuqFX2f5VldaXNxssVhTsNydVtRDM77en7onBzaCazUsftbTBEHiIH48C/ymWe+8OP/L28TJSbgd/H5+6viyaodMzgXxMlUVzGZ2IdBv5RUvCStH5A428TALIr0mLXSYOXM8k4loZrUCkNdGeTOtmGZJaJMO/eOTdiHsVqt7UOHZxv1t5vdD1NGn+wgoXQaJg57P2z4q/inAVAJqHnFnyl3lekjXszhRGWyZuOUxcDKrkbeFX+zxVJ1GXCDT4hZt+KDyFukKbvnAGtTwxPTfnrNKGwKNdgq+1rwgUQDxwHXsS3oF83BysgmOqlCh2N3RwF9TlZACMNC4AM428W4z8pcz+YlXFM31XYMOPS8vul5UMeNjLdr9NC3iRttRMfp19ZIdZuqd9dQ3575zz1TaBNh84WzewVfNfgnVVcUOoI1XbRfOznV7JSJuoWAJl+fDk8IvkNfO7+9syGymUGKU7IRDoqM+QcPkYfuuJulHa/L2qUcVvU2Zdk1idq9WiA+gY8hy9ku6POHP35tPRycqNflAtQf0MQ3WSHfP1v4tN47xKT5qMTlSIzZkjmxm48svmK/hbCcZ+Ttr9VZv2gTPuBiLETwydaSoDgQTHatjlaAc209q7is2HfjVvM52e5mXhyjZOW/6gk2+fExJVM73d0sjP4pJwCPizXJf+9Q9bDFjH8Dnxxw0ztmRIlWipYwHngb2TRPqp937GItRATcrW/B7weD5vJ19g1phOfKvsFaf5BPtgbb1z+RUFM/5b8jOP6e+jeuw6P2C+L6vALUSJJGoed6FqwAEal+L4tC+Cji+QKBODvdeA/Ay/E8wwqCoBMGmdJZvnD+FHKd0emfTmSLAfxccUpnfA64QKr8Ah+Dx7A68oce5LK1XuJEi11K+CiMlRvkKV83QJWi8Y1KxeAfwKec86NZ2si8pWy+PT7TvwM9S/j0f3rmZ5hNxzVLhdlIYS2XQMSGusyWXfZi+tYJLMoUaKFEAQlMxsHfiwr4CPip43zLAiCpTEmAfQa8P1KzP8BARAxfi8+5fC3gI9FLaqP49HDt/W+iAfr7tLn11Qxcarl9CdK1A6RgYPOubfM7E7gP0ih9lRISXcNzpvMHiMXzZz8E3xfw6qtxvLS/HkddDnwJXw+8i58Ms5+SZMpfCbeA3IJHD7ZZ2UkSGwGyZYGW869qUW13G7LrD2LOEgjCwjXel1WwXedy/1Zi+w5JzD9IL7F+GvAZ6Rcl8k6cHWsUUeFtUL86fCZtM8Cf6bp0jP2GcxLSm3CD9u4lenutcvwYF9OoEZobz1QQxZTouaGcAIQm8sU3wSh3N0Cax9atluE8dQzqcll2niP4wHi5Q32U+yah9bxNJolqbZjx8zsr/D1LA/ic15C8lx/HWsU39MVafz38Pk1zwvsO1lLH4S8md0FfBoflrsLXyV0BD/COrQcGotSbkei/meLZdJbnZNvrQVTcHPa5OUa7uVipnQ6lKCuEi5zVhtochE3fFkbsTNK7x7XXsrXmPm2Gp8gVogq6y5p/12MhMps6xXA5uE6G3TMhxswmcHZxpkeG/eSrO0B8doGPFgeOkT3ZZqcXtH3V0rTHxS/juj9O8ChuJX5bE1Q8sBXpfmHgL/Hx+OHpfV/pYdS0slDx57JzMOYrPHhNIsKszB1Z4VyYmshjb4sEqSuxiKTUGIbfMu8Ns6r+vsyPTdbZCtghZmtFEa0V5syXwfjjuEB5vD5I8APo8k7taxvaOZ6CBhrlQYlUe8AA0adc/vM7LDWLY+vYP2QnmWnLPHe6L4v41H9YQn9cQnGSbUxL9Xb/ciZ2ZPRcMuSTn4uqkMutWAbLFenheBayJ/vkFk7WoPGjoupRoHxTNedVXpdXWABXI3WSFFcjRixHl+8HHVafl+/31Dn/YUBK13ay5eBCws4ebfu3hnZITNRN+MB3cOlaJT4+Wz78tmOWc9FdajnfaJEiRZIEMSvOr6Xi4bUuDlp0jbt4cZSTDCpof9iK5m6c77XZh1nCWYTXnP3lShRokSJEiVKlChRokSJEiVKlChRokSJEiVKlChRokSJEiVKlChRokSJEiVKlChRokSJEiVKlChRokSJEiVKlChRokSJEiVKlChRokSJEiWiweaaiairjVOO2dt8z9jWaT7aQUXXBlCu5xjR9eSy342O262GlRMVmlzmMj3yi7WcP3S2za5Hrdeu77l4FHZTG2gmStSqPePS/ae1TBZAjQ+/WRpAmm41fib8BB9sY22Z8VlngJHQxz1zjOVMD5AsRHMOQrvtK865Qq3XbmbLgM1Mt5o+iu8hX57hPsC3596h75WB08BQ+J6Z9eteB/C96seAc5VaVpvZOvyAmTP49uaXnXNTs6zlCqYHzE5GE6rOaMrObEy9Cd8y/TJwyjlXjP6Xxw/g2KR5GKfD/9uN8qnTbtOEyArgKeBJpie6uApjr8aBv8BPjR2JTN0cvq/+F4CnJSjGmZ5ycxI//ukdM9vtnBuq4dry+Nn0XwRu13V9D/gOcHwGIWJijqeAT4rB9+PHTO8VE90P/KGEwD7gB7qnSrPoPqN7eg8/tHIPcKTS+c1sAD+C7uP48VmbJYBG8IM+fm5mB/Fz70pVmP864Hd17weBvzSz1yS8OoB78MNvdwH/APwVcKKZCiEJgNbX/n3StiPSrOVGHn70nXXarHeJ0QeYnq0YhqxMaNLNdmCNmY2FMV/OubJmyvdq83fhp74UpQHvEGOeBlZqxtxUNSbQdfWKiX4jYqRjwL8Axyvdb6Thgya/XRbJLWLag7qfTwCPSKgc0TCZyQptvTvEkI/q/keBN6oMxVih6/wYfmLV9mgdRvEz9O4Afgb8OXAhZtpImObx064ej57HJTN7JxLMO4C7Ne5+oF35IN+mzN8BbMOPYdoDHGlU8kcb8KoY4c+1aXfoHDeKaX8sJrkqjTnmecCVIz/U6e/DYpp92uxl/OzGj4tBjuJHgr0zy+UN6vxFzZDL6ZruMLP98aShCoLglJn9UGb013TeXdKoG2QZFPCTaP8P8HZs1kfrktf1Z++x0hp26B6/CVyvZ/OG7vN6WVcPa30PmNmrEuCVXNtJ/KxCJ0HwNn7a0LgEYxBG+VqB2yQArq2R26ulUU4Ap82sKI1qEhDdzrnxaj5y0JQRA52SOVmUVnwY+PdioN3AX2oTLtN5rszgikxqo/4b8N+1WR+MGGSzfn8vzAusMJijEz/KfRdwXOOlbtB3HwNecs69M4sffVCm/TZp+4fkU9+n454GnpOQmqoDa6qGPa2WoLseeAv4ttbgYjQBeTtwp+7/jSoCIMyG7NDabZbweN0597KZFaIxbVfbeXR9OwuAYCZui8zE3Wa2T37tzWZ2AdjvnLtsZmtlmk7ID70YM65ApAv69YrM+VLkAnRIoIxT20jpEeD94OubmUl4lKS5JiRoxiuZwdr0HxZTHQR+CtwrX/wW4C4ze985N17J99XvU2Z2DD+ccxA/Ov6rwjvOAS8Ce51zY016LqtlXawR0//SOXcqwjNO4odibtS9/3oKUeb68xLEF2SljMvae8bM3tXzyOlz48kCaEPkP0LcAyJ8vZD2UW30x7U5TprZFY1k/poshoPShKVqsWcdt0Pvi0Ax/L8aAh8dryBm/7CZ3S/me0QWi0k4vK7rrQZmXi+gbpVchmfxKPxDeGT/bpnYR2dZsjPAC9L6D4n5i1qDl2VWzzWi4iKNvCUaRd8brWlRVtaI/rcK2GxmZyocL0zXvSCBcUoW2eO65vf0/M7rvC4JgPajcjSr/bvSOncDHxHafFLvV0hgDGjDnAQuOudK2U2vz4Wf8WTfSaAQ/j8DoFjShi/o2dyv61ovjbcS+KU07xHn3GQVEGyFtP9WCZULMnXPCM2/V9jAppkEgJnldE2IAUMorkvvB8W0zaJO+efo+B2Rhr9qZpeiyMharUeuAhDaI+F+ndbqJT3vrwK/JyHQhQ8BlpIAoG1zII4GcMg5d9zM7pV/+YoY5W5gh5kNi2FOAe855y7WGUZ0tWwyWSW5YNrLVN2kzR7mxL8C/AgomFk+jl+LWbrF+HdLE44AO4EvySq4Tv70VmDLTJpbAOUa+c/36lhDEkir5EqsjubXz5UmhFUEAd07vTTmZH2sFIg4JAuoXMXFK0sQjMuCGdb1PiD3aFQCp6OdMYBcO8b+I9T9bBCEYr4pmceDEgzPadN9Saj+EWC/ALZasYZ6qEOvPm3QHwB/jI/bn9Xxlmtjf+D40T31CNfYFiHut+Hj3k9IoCA/eouEQbVR8d2ygp7GhwMPAn8v4bhezPSEmXXNcSJwuI+ihMykrn1NtNZrdB+D+t8Z4ESV87poPYOiew34X7Lu1gprWN7uyXA52psGpWVKkV/eqQjAu3gEulfm9AAeTT9Ux/F7o+y/Wqkkc71XrsBLclH2S+s+CdzvnCtXygHQ9zdok4e8gSFpwhP4kNoVmcB3AreYWacYPhcJk7I05QMCSweAw9Kmf6vjbtT1PFoD81sN63BOxz0rS+WTslT6gU/JhN8py+aShEAlS8yi3Is1wFqFKH8kQTChtcy3+f5v6wUwbexxoNvMBmVeHtdGRIw4KGY6AYxpsxVqPMfySADUKmwL0oT9EYD4pgC7J2TGPqQY+OEKxTWr8NGKbRJW/xefMxAYdCvwOTHUx3SMc3JvXEY5PA58Q8x4WRbAAYFou4Bn8AlBwwqxnangUgSQLYCiLisIos8fB76v890u5t0goPE2PJJflBD6Z+dccQYXpqDzrZFQR5GF52TNPSIh61IYsP2oQxupoA32qLTdWjHLKX1uSABayOK7MBviHUUYpiQ0QgbeaA3JRF2RjzsaMgGV+78PeB6Pxt8iq+Ssc244Av968JlyA/r+IeAHsmbCuQ6Iua/Tq1Ma8mSUlWjK398oF+EkPtb/skKi42LUmyVENgA3KTSazQfokiA9KUYbk8CtGHo0s+dlxXxV9/lxMekVuWBvyg05MQMOMx6FAYdD6FWg6fP4rM2tWmtrMpCZBMASAQCH8Rls98gUHpCmedM5NxqSgaQd/0WaslSHgDkr7XtUwN3pGr93GPgbMc1eoKRreQv4n3IFVkogZTd/nxj6VXzK79vAcFz66pwbkfXQJwbbV0U49Yvp/klr8DPhHwGoPCxX4JAYrUsadSrjDnTpM3+m9Xxfn+sKqcMZIXBRGYgHJDxXCoAt6d4P6npmyqc4KXN/Pz7VdzTj2rwkIXCTLKvLpGrAtsoFCLn6IblmizblEVWbFcxsEz7b7C4x0z8q/He1xnP0Cyjrlck8MlvUQNfVi0frQwXeOJB3zk1Jw/fJLTFVuY1nLICV0f8vqkKvVKVgplsa+UpWc8slWhPq/FVBOBIJxpKETTjnqNZnMnOcHn2+GDH+KHDVOVeYZT069XyQJTRWR4lvrxRcTinP2ftbKXdpJIR1kwBIFG+Q1cCnpSn2O+d+slDlxrMlDM3WzKJZzS4Wq2lGtfPGlkVq5NEc+n+Wh/lKkSpdtQAAAABJRU5ErkJggg==" alt="LiPU by Traxión">
   <div class="ttl"><h1>Flota y Carta Operativa</h1><small>Lipu Monterrey</small></div>
   <span class="badge" id="corte"><span class="dot" id="corteDot"></span><span id="corteTxt">Sin datos</span></span>
+  <select class="semsel" id="selSem" aria-label="Semana que se muestra" title="Semana que se muestra"><option value="">Semana en curso</option></select>
   <button class="tbtn alertbtn" id="btnAlert" type="button" hidden>⚠ <span id="alertN">0</span> críticos</button>
   <button class="tbtn" id="btnReload" type="button">↻ Recargar</button>
   <button class="tbtn green" id="btnExcel" type="button">⬇ Excel</button>
@@ -285,7 +295,7 @@ main,.rtop{container-type:inline-size}
         <button class="qchip" type="button" data-q="sin" aria-pressed="false">Sin asignación</button>
       </div>
     </div>
-    <p class="note">Periodo: corte actual. La SÁBANA es una fotografía al momento de la carga; no tiene histórico por fecha.</p>
+    <p class="note" id="semNote">Periodo: semana en curso. Cada lunes a las 06:00 la hoja guarda la fotografía de la semana que termina (pestañas HIST_*). Elige una semana en el selector de arriba para verla.</p>
   </aside>
   <div class="scrim" id="scrim" hidden></div>
   <main>
@@ -378,8 +388,8 @@ async function fetchT(url){
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), CONFIG.timeoutMs);
   try { const r = await fetch(url, {signal:ctl.signal, cache:"no-store"}); if (!r.ok) throw new Error("HTTP " + r.status); return await r.text(); } finally { clearTimeout(t); }
 }
-async function loadRange(key){
-  const [hoja, rango] = CONFIG.hojas[key];
+async function loadRange(key){ const [hoja, rango] = CONFIG.hojas[key]; return getRange(hoja, rango); }
+async function getRange(hoja, rango){
   if (MCP) {
     const call = () => MCP.callTool(CONFIG.conector, "get_values", { spreadsheetId: CONFIG.SHEET_ID, range: `${hoja}!${rango}` },
       { cache:{ staleTime:60000, gcTime:600000 }, signal: (window.AbortSignal && AbortSignal.timeout) ? AbortSignal.timeout(90000) : undefined });
@@ -1171,7 +1181,7 @@ V.carta = { label:"Pre carta operativa", ic:"🗂", rows:() => M.units.filter(u 
     { k:"cumple", l:"Cumple contrato", h:u => pill(u.cumple || "–", u.cumple === "CUMPLE" ? "#5FA36F" : u.cumple === "NO CUMPLE" ? "#AE2F25" : "#8a94ad") },
     { k:"placas", l:"Placas fed." },
     { k:"asientos", l:"Asientos", n:true } ] };
-const ORDER = ["revisar","resumen","conc","operadores","rhx","taller","extra","coment","plantas","carta"];
+const ORDER = ["revisar","resumen","conc","operadores","rhx","taller","extra","coment","plantas","carta","hist"];
 if (!ORDER.includes(S.tab)) S.tab = "revisar";
 
 function cobBar(a, c){
@@ -1294,7 +1304,7 @@ function flushWF(){
 /* La línea del corchete apunta a «Diferencia» */
 function tickIntegra(){ document.querySelectorAll(".integ").forEach(c => { const br = c.querySelector(".ibr"), d = c.querySelector(".tk") || c.querySelector('[data-kpi="sinasig"]'); if (!br || !d || getComputedStyle(br).display === "none") return; const a = br.getBoundingClientRect(), b = d.getBoundingClientRect(); br.style.setProperty("--t", Math.round(b.top + b.height / 2 - a.top) + "px"); }); }
 window.addEventListener("resize", () => requestAnimationFrame(tickIntegra));
-function renderKpis(){
+function kpiCalc(){
   const u = M.units.filter(r => pass(r)), tot = u.length;
   const cnt = k => u.filter(r => stKey(r.estatus) === k);
   const asg = cnt("ASIGNADA"), sinop = cnt("ASIGNADA SIN OPERADOR"), disp = cnt("DISPONIBLE"), tal = cnt("EN TALLER"), cor = cnt("EN CORRALÓN"), fue = cnt("FUERA");
@@ -1310,7 +1320,7 @@ function renderKpis(){
   const cmC = uu.filter(r => obsTipo(r) === "Comentario trinomio").length, cmN = uu.filter(r => obsTipo(r) === "No cumple").length;
   const crit = M.rev.filter(r => pass(r) && r.sev === "Crítico");
   const costoT = tal.reduce((a,r) => a + (r.costo || 0), 0);
-  KPIS = {
+  const K = {
     flota:{ title:"Flota ODO", rows:u, view:"unidades" },
     asig:{ title:"Asignadas con operador", rows:asg, view:"carta" },
     sinasig:{ title:"Unidades sin asignar", rows:u.filter(r => stKey(r.estatus) !== "ASIGNADA"), view:"unidades" },
@@ -1337,7 +1347,7 @@ function renderKpis(){
   const iOper = [...iDisp, ...iGuard, ...iSinOp], iNoOp = [...iTal, ...iCor];
   const dif = tot - iAsg.length;
   const fueD = iDisp.filter(r => stKey(r.estatus) === "FUERA").length;
-  Object.assign(KPIS, {
+  Object.assign(K, {
     i_asg:{ title:"Asignadas (operativas con ruta y operador)", rows:iAsg, view:"carta" },
     i_dif:{ title:"Diferencia", rows:[...iOper, ...iNoOp], view:"unidades" },
     i_disp:{ title:"Disponibles", rows:iDisp, view:"unidades" },
@@ -1347,11 +1357,17 @@ function renderKpis(){
     i_tal:{ title:"En taller", rows:iTal, view:"vTaller" },
     i_cor:{ title:"En corralón", rows:iCor, view:"vCorralon" },
     i_noop:{ title:"Subtotal no operativas", rows:iNoOp, view:"unidades" } });
+  return { K, u, tot, asg, sinop, disp, tal, cor, fue, conRuta, pl, contr, asig, cob, cu, falt, nc, ops, act, ex, cmC, cmN, crit, costoT, cobTag, iGuard, iAsg, iSinOp, iDisp, iTal, iCor, iOper, iNoOp, dif, fueD };
+}
+function renderKpis(T){
+  T = T || { integ:$("#integ"), kpis:$("#kpis") };
+  const C = kpiCalc(); KPIS = C.K;
+  const { u, tot, asg, sinop, disp, tal, cor, fue, conRuta, pl, contr, asig, cob, cu, falt, nc, ops, act, ex, cmC, cmN, crit, costoT, cobTag, iGuard, iAsg, iSinOp, iDisp, iTal, iCor, iOper, iNoOp, dif, fueD } = C;
   const linea = (id, l, v, sub, c, pct) => `<button type="button" class="il comp" data-kpi="${id}" style="--c:${c}"><span class="ll">${esc(l)}</span><span class="lv">${fInt(v)}</span><span class="ls">${sub}</span><span class="ib"><i style="width:${pct}%"></i></span></button>`;
   const item = (id, l, n, c, sub) => `<button type="button" class="il comp" data-kpi="${id}" style="--c:${c}"><span class="ll">${esc(l)}</span><span class="lv">${fInt(n)}</span><span class="ls">${fPct(n, dif)} · ${sub}</span><span class="ib"><i style="width:${dif ? n / dif * 100 : 0}%"></i></span></button>`;
   const subt = (id, l, n, sub) => `<button type="button" class="il sub" data-kpi="${id}"><span class="ll">${esc(l)}</span><span class="lv">${fInt(n)}</span><span class="ls">${fPct(n, dif)} · ${sub}</span></button>`;
   const sumC = iOper.length + iNoOp.length;
-  $("#integ").innerHTML = `
+  T.integ.innerHTML = `
     <div class="icol left">
       <p class="ih">Integración de la flota</p>
       ${linea("flota","Flota",tot,"100.0% · unidades en ODO","#066a38",100)}
@@ -1380,7 +1396,7 @@ function renderKpis(){
       { l:"Guardia", v:iGuard.length, type:"dec", c:"#0891b2", open:() => openKpi("i_guard") },
       { l:"Ruta / sin operador", v:iSinOp.length, type:"dec", c:"#E9C34F", open:() => openKpi("i_sinop") },
       { l:"Asignadas", v:iAsg.length, type:"total", c:"#5FA36F", open:() => openKpi("i_asg") } ])}`;
-  $("#kpis").innerHTML = [
+  T.kpis.innerHTML = [
     kpi({ id:"cob", l:"Planta vs contrato", v:`${fInt(asig)} / ${fInt(contr)}`, c:`unidades asignadas / contratadas · ${cob === null ? "N/A" : cob.toFixed(1) + "%"} de cobertura · ${fInt(falt.length)} plantas con faltante · meta ${cu.verde}%`, color:"var(--info)", tag:cobTag[0], tagc:cobTag[1] }),
     kpi({ id:"nc", l:"No cumple antigüedad", v:fInt(nc.length), c:`${fPct(nc.length, conRuta)} de las unidades con ruta`, color:"#C9551F", tag: nc.length ? "Sustituir" : "OK", tagc: nc.length ? "t-bad" : "t-ok" }),
     kpi({ id:"ops", l:"Operadores sin unidad", v:fInt(ops.length), c:`${fPct(ops.length, M.rh.length)} de ${fInt(M.rh.length)} en RH`, color:"#EDA35C", tag:`${fInt(act.length)} activos`, tagc:"t-info" }),
@@ -1428,6 +1444,7 @@ function tableHtml(key, rows, flat){
 function renderView(){
   const k = S.tab, v = V[k];
   if (v.chart) { renderResumen(); return; }
+  if (v.custom) { v.custom(); return; }
   const base = rowsOf(k, true), rows = rowsOf(k).sort(sorter(k));
   const st = S.sort[k] || v.sort, sc = v.cols.find(c => c.k === st.k);
   const chips = v.chips.map(([val, lab]) => { const n = val ? base.filter(r => v.chipMatch ? v.chipMatch(v.chipOf(r), val) : v.chipOf(r) === val).length : base.length;
@@ -1534,7 +1551,7 @@ let DL = null;
 function plain(c, r){ const v = c.v ? c.v(r) : r[c.k]; if (v instanceof Date) return fDate(v); if (c.k === "cobertura") return r.contrato ? +(r.asignadas / r.contrato * 100).toFixed(1) : "N/A"; return v === null || v === undefined ? "" : v; }
 async function saveWb(wb, name){
   if (!window.XLSX || !wb) { showAlert("info", "La librería de Excel no cargó. Pulsa Recargar para exportar."); return; }
-  const fname = `${name.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"")}_LipuMty_${stamp()}.xlsx`;
+  const fname = `${name.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"")}_LipuMty_${SEL ? semCorta(SEL) + "_" : ""}${stamp()}.xlsx`;
   if (IN_CLAUDE) { if (!DL) { try { DL = await window.claude.use("downloads"); } catch(e){} }
     if (DL) { try { await DL.save({ filename:fname, data:new Uint8Array(XLSX.write(wb, { bookType:"xlsx", type:"array" })) }); } catch(e){ showAlert("info", "No se guardó el archivo: la descarga se canceló o no está permitida en esta vista."); } return; } }
   XLSX.writeFile(wb, fname);
@@ -1594,6 +1611,7 @@ function showAlert(kind, html, actions){
   $("#alerts").appendChild(box);
 }
 function setCorte(d, cached){
+  if (SEL) { const w = WEEKS.find(x => x.sem === SEL); $("#corteDot").className = "dot hist"; $("#corteTxt").textContent = `Histórico ${semCorta(SEL)} · ${w && w.lunes ? semRango(w.lunes) : ""} · guardada ${w ? w.corte : ""} · ${nf.format(ROWS_READ)} filas`; return; }
   const ageH = (Date.now() - d.getTime()) / 36e5;
   $("#corteDot").className = "dot" + (ageH > 72 ? " red" : ageH > 24 ? " amber" : "");
   $("#corteTxt").textContent = `${cached ? "Copia guardada" : "Actualizado"} ${fBadge(d)} · ${SOURCE} · ${nf.format(ROWS_READ)} filas`;
@@ -1614,9 +1632,149 @@ function errMsg(e){
 function renderAll(){
   if (!M) return;
   if (!ORDER.includes(S.tab)) S.tab = "revisar";
-  renderFilters(); renderKpis(); renderTabs(); renderView(); writeHash();
+  renderFilters(); const PV = prevVals(); renderKpis(); renderTabs(); renderView(); applyDeltas(PV); renderSemSel(); writeHash();
   $("#foot").textContent = `${CONFIG.UDN} · Fuente: ${SOURCE} · ${nf.format(M.units.length)} unidades ODO · ${nf.format(M.tr.length)} renglones TRINOMIO · ${nf.format(M.rh.length)} operadores RH · ${nf.format(M.con.length)} plantas en CONTRATO.`;
 }
+
+/* =================== Historia semanal =================== */
+/* La hoja guarda cada lunes 06:00 (Apps Script «Historia semanal») la fotografía de SABANA, RH, TRINOMIO, CONTRATO y TALLER
+   en las pestañas ocultas HIST_*; HIST_INDICE dice en qué renglones quedó cada semana. Columnas A–B = SEMANA y FECHA_CORTE. */
+const HIST = { indice:["HIST_INDICE","A1:O600"],
+  src:[ ["sabana","HIST_SABANA",82,"SAB"], ["rh","HIST_RH",13,"RH"], ["trinomio","HIST_TRINOMIO",8,"TRI"], ["contrato","HIST_CONTRATO",8,"CON"], ["taller","HIST_TALLER",8,"TAL"] ] };
+let WEEKS = [], SEL = "", LIVE = null, PREV = null, PREV_SEM = "";
+const WCACHE = {};
+function colLetter(n){ let s = ""; while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; }
+function isoSem(d){ const t = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12); t.setDate(t.getDate() - ((t.getDay() + 6) % 7) + 3);
+  const y = t.getFullYear(), j = new Date(y, 0, 4, 12); const w = 1 + Math.round(((t - j) / 864e5 - 3 + ((j.getDay() + 6) % 7)) / 7); return `${y}-S${String(w).padStart(2, "0")}`; }
+function lunesDe(d){ const t = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12); t.setDate(t.getDate() - ((t.getDay() + 6) % 7)); return t; }
+const fDM = d => d ? `${String(d.getDate()).padStart(2, "0")} ${MESES[d.getMonth()]}` : "";
+const semCorta = s => String(s || "").replace(/^\d{4}-/, "");
+function semRango(l){ if (!l) return ""; const d = new Date(l); d.setDate(d.getDate() + 6); return `${fDM(l)} – ${fDM(d)}`; }
+function dmy(s){ const m = String(s || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); return m ? new Date(+m[3], +m[2] - 1, +m[1], 12) : null; }
+function withModel(m, fn){ const s = M; M = m; try { return fn(); } finally { M = s; } }
+
+async function loadIndex(){
+  try {
+    const v = await getRange(...HIST.indice);
+    if (!v.length || norm(v[0][0]) !== "SEMANA") return [];      /* sin pestaña HIST_INDICE todavía (gviz regresaría otra hoja) */
+    const H = v[0].map(norm), ix = k => H.indexOf(k);
+    return v.slice(1).filter(r => /^\d{4}-S\d{2}$/.test(clean(r[0]))).map(r => {
+      const ptr = {}; HIST.src.forEach(x => { const k = x[3]; ptr[k] = [parseInt(r[ix(k + "_INI")], 10) || 0, parseInt(r[ix(k + "_N")], 10) || 0]; });
+      return { sem:clean(r[0]), lunes:dmy(r[ix("LUNES")]), corte:clean(r[ix("FECHA_CORTE")]), tipo:clean(r[ix("TIPO")]), ptr };
+    }).sort((a, b) => b.sem.localeCompare(a.sem));
+  } catch (e) { return []; }
+}
+const wKey = w => w.sem + "@" + w.ptr.SAB.join(",");   /* si se vuelve a guardar una semana cambia el renglón y se relee */
+async function loadWeek(sem){
+  const w = WEEKS.find(x => x.sem === sem); if (!w) throw { code:"tool_error", message:`La semana ${sem} no está en HIST_INDICE.` };
+  if (WCACHE[wKey(w)]) return WCACHE[wKey(w)];
+  const raw = {};
+  await Promise.all(HIST.src.map(async ([key, hoja, nc, k]) => { const [ini, n] = w.ptr[k];
+    raw[key] = (ini && n) ? await getRange(hoja, `C${ini}:${colLetter(nc + 2)}${ini + n - 1}`) : []; }));
+  if (!raw.sabana.length) throw { code:"tool_error", message:`La semana ${sem} no trae SABANA en HIST_SABANA.` };
+  return (WCACHE[wKey(w)] = { raw, M: build(raw), rows: Object.values(raw).reduce((a, r) => a + r.length, 0) });
+}
+const curSem = () => SEL || isoSem(new Date());
+async function setPrev(){
+  const p = WEEKS.find(w => w.sem < curSem()); PREV_SEM = p ? p.sem : ""; PREV = null;
+  if (p) { try { PREV = (await loadWeek(p.sem)).M; } catch (e) { PREV = null; PREV_SEM = ""; } }
+}
+function renderSemSel(){
+  const sel = $("#selSem"); if (!sel) return;
+  const hoy = lunesDe(new Date());
+  sel.innerHTML = `<option value="">En curso · ${semCorta(isoSem(hoy))} (${semRango(hoy)})</option>` +
+    WEEKS.map(w => `<option value="${esc(w.sem)}">${esc(semCorta(w.sem))} · ${esc(semRango(w.lunes))}</option>`).join("");
+  sel.value = SEL; sel.hidden = !WEEKS.length && !SEL;
+  const n = $("#semNote"); if (n) n.textContent = SEL
+    ? `Periodo: semana ${semCorta(SEL)} (${semRango((WEEKS.find(w => w.sem === SEL) || {}).lunes)}), fotografía guardada. Las flechas comparan contra ${PREV_SEM ? semCorta(PREV_SEM) : "—"}.`
+    : `Periodo: semana en curso. ${WEEKS.length ? `Hay ${WEEKS.length} semana(s) guardada(s); las flechas ▲▼ comparan contra ${PREV_SEM ? semCorta(PREV_SEM) : "la última guardada"}.` : "Aún no hay semanas guardadas."} Cada lunes a las 06:00 la hoja guarda la semana que termina.`;
+}
+async function showWeek(sem){
+  if (sem === SEL) return;
+  $("#loader").hidden = false; $("#loaderHelp").hidden = true; $("#loaderMsg").textContent = sem ? `Leyendo la semana ${semCorta(sem)}…` : "Volviendo a la semana en curso…";
+  try {
+    if (MCP === null) MCP = await getMcp();
+    if (sem) { const o = await loadWeek(sem); SEL = sem; RAW = o.raw; M = o.M; ROWS_READ = o.rows; }
+    else if (LIVE) { SEL = ""; RAW = LIVE.raw; M = LIVE.M; ROWS_READ = LIVE.rows; SOURCE = LIVE.source; }
+    else { SEL = ""; $("#loader").hidden = true; return load(true); }
+    await setPrev(); setCorte(LIVE ? LIVE.t : new Date(), false); $("#alerts").innerHTML = ""; renderAll();
+  } catch (e) { showAlert("bad", `<b>No se pudo leer la semana ${esc(semCorta(sem))}.</b> ${errMsg(e)}`); renderSemSel(); }
+  finally { $("#loader").hidden = true; }
+}
+$("#selSem").addEventListener("change", e => showWeek(e.target.value));
+
+/* ▲▼ contra la semana anterior: se pinta la misma vista con el modelo anterior (fuera de pantalla) y se comparan los números */
+const numOf = t => { const m = String(t || "").replace(/[\s$]/g, "").match(/[+−-]?[\d,]+(\.\d+)?/); return m ? parseFloat(m[0].replace(/,/g, "").replace("−", "-")) : null; };
+function readVals(root, into, pre){ root.querySelectorAll("[data-kpi],[data-mx]").forEach(el => { const v = el.querySelector(":scope > .lv, :scope > .v"); if (!v) return;
+  const id = pre + (el.dataset.kpi || "x:" + el.dataset.mx); const n = numOf(v.textContent); if (n !== null) into[id] = { n, pct: /%/.test(v.textContent) }; }); }
+function prevVals(){
+  if (!PREV) return null;
+  const out = {}, wq = WF_Q.length, cq = CB_Q.length, sK = KPIS;
+  try {
+    withModel(PREV, () => {
+      const T = { integ:document.createElement("div"), kpis:document.createElement("div") }; renderKpis(T); readVals(T.integ, out, "i:"); readVals(T.kpis, out, "k:");
+      const v = V[S.tab]; if (v && v.top && !v.custom) { const d = document.createElement("div"); d.innerHTML = v.top(); readVals(d, out, "v:"); }
+    });
+  } catch (e) { console.warn("Comparativo semanal", e); }
+  finally { WF_Q.length = wq; CB_Q.length = cq; KPIS = sK; }
+  return out;
+}
+function applyDeltas(pv){
+  if (!pv || !PREV_SEM) return;
+  const lab = semCorta(PREV_SEM);
+  [["#integ","i:"],["#kpis","k:"],["#view","v:"]].forEach(([sel, pre]) => { const root = $(sel); if (!root) return;
+    root.querySelectorAll("[data-kpi],[data-mx]").forEach(el => { const v = el.querySelector(":scope > .lv, :scope > .v"); if (!v) return;
+      const p = pv[pre + (el.dataset.kpi || "x:" + el.dataset.mx)]; const n = numOf(v.textContent); if (!p || n === null) return;
+      const d = Math.round((n - p.n) * 10) / 10, abs = Math.abs(d), u = p.pct ? " pts" : "";
+      const t = d > 0 ? `▲ +${nf.format(abs)}${u}` : d < 0 ? `▼ −${nf.format(abs)}${u}` : "= igual";
+      const b = `<span class="dlt ${d > 0 ? "up" : d < 0 ? "dn" : ""}" title="${esc(lab)}: ${nf.format(p.n)}${p.pct ? "%" : ""}">${t} vs ${esc(lab)}</span>`;
+      const host = el.querySelector(":scope > .ls, :scope > .c"); if (host) host.insertAdjacentHTML("afterbegin", b); }); });
+}
+
+/* Pestaña Histórico: una fila por semana guardada + la semana en curso */
+function semMetrics(m){ return withModel(m, () => { const c = kpiCalc();
+  return { flota:c.tot, asg:c.iAsg.length, dif:c.dif, disp:c.iDisp.length, guard:c.iGuard.length, sinop:c.iSinOp.length, fdisp:c.tot - c.iNoOp.length, tal:c.iTal.length, cor:c.iCor.length,
+    contr:c.contr, asigC:c.asig, cob:c.cob === null ? null : Math.round(c.cob * 10) / 10, rh:M.rhx.filter(r => pass(r)).length, ops:c.ops.length, ex:c.ex.length, nc:c.nc.length }; }); }
+const HCOLS = [["flota","Flota"],["asg","Asignadas"],["dif","Diferencia"],["disp","Disponibles"],["guard","Guardia"],["sinop","Ruta / sin op."],["fdisp","Flota disponible"],["tal","En taller"],["cor","En corralón"],
+  ["contr","Contratadas"],["asigC","Asignadas vs contrato"],["cob","Cobertura %"],["rh","Plantilla RH"],["ops","Operadores sin unidad"],["ex","Trinomio de más"],["nc","No cumple antigüedad"]];
+let HLOAD = false, HCHART = null;
+function histRows(){ const out = [];
+  if (LIVE) out.push({ sem:"", lbl:`En curso · ${semCorta(isoSem(new Date()))}`, per:semRango(lunesDe(new Date())), corte:"en vivo", m:semMetrics(LIVE.M) });
+  WEEKS.forEach(w => { const c = WCACHE[wKey(w)]; out.push({ sem:w.sem, lbl:semCorta(w.sem), per:semRango(w.lunes), corte:`${w.corte}${w.tipo ? " · " + w.tipo.toLowerCase() : ""}`, m: c ? semMetrics(c.M) : null }); });
+  return out; }
+async function histLoadAll(){
+  if (HLOAD) return; HLOAD = true;
+  const falt = WEEKS.filter(w => !WCACHE[wKey(w)]);
+  for (let i = 0; i < falt.length; i++) { const p = $("#hprog"); if (p) p.textContent = `Leyendo semanas guardadas… ${i + 1} de ${falt.length} (${semCorta(falt[i].sem)})`;
+    try { await loadWeek(falt[i].sem); } catch (e) { console.warn(e); } }
+  HLOAD = false; if (S.tab === "hist") renderView();
+}
+function histView(){
+  const rows = histRows(), pend = rows.filter(r => !r.m).length;
+  const dcell = (r, i, k) => { if (!r.m) return `<td class="num">…</td>`; const v = r.m[k], nx = rows.slice(i + 1).find(x => x.m);
+    const pv = nx ? nx.m[k] : null; let sm = "";
+    if (v !== null && pv !== null && pv !== undefined) { const d = Math.round((v - pv) * 10) / 10; sm = `<small class="${d > 0 ? "up" : d < 0 ? "dn" : "eq"}">${d > 0 ? "▲ +" : d < 0 ? "▼ −" : "= "}${d ? nf.format(Math.abs(d)) : ""}</small>`; }
+    return `<td class="num">${v === null ? "N/A" : nf.format(v)}${k === "cob" && v !== null ? "%" : ""}${sm}</td>`; };
+  const body = rows.map((r, i) => `<tr class="row${r.sem ? "" : " live"}" data-sem="${esc(r.sem)}" title="Ver esta semana en el tablero"><td>${esc(r.lbl)}${r.sem === SEL ? " ◂" : ""}</td><td>${esc(r.per)}</td><td>${esc(r.corte)}</td>${HCOLS.map(([k]) => dcell(r, i, k)).join("")}</tr>`).join("");
+  const empty = !WEEKS.length;
+  $("#view").innerHTML = `<div class="chead"><span class="ic">🗓</span><h3>Histórico semanal</h3><span class="cnt">${nf.format(WEEKS.length)}</span><span class="meta">semanas guardadas · de la más reciente a la más antigua</span><span class="sp"></span><button class="xbtn" type="button" id="xlsHist">⬇ Excel</button></div>
+    <p class="explain">Cada lunes a las 06:00 la hoja guarda la fotografía de la semana que termina (antes de cargar la información nueva). Cada número trae la variación contra la semana de abajo. Toca una fila para ver esa semana completa en el tablero. Respeta los filtros de la izquierda.</p>
+    ${empty ? `<div class="hprog"><b>Aún no hay semanas guardadas.</b> En la hoja de Google abre el menú <b>Historia semanal → Guardar semana ahora</b> para guardar la primera, y <b>Activar corte automático (lunes 06:00)</b> para que se guarde sola cada semana.</div>` : ""}
+    ${pend ? `<div class="hprog" id="hprog">Leyendo semanas guardadas…</div>` : ""}
+    <div class="hwrap">${rows.filter(r => r.m).length > 1 ? `<div class="hchart"><canvas id="hChart" aria-label="Tendencia semanal de la flota"></canvas></div>` : ""}
+    <div class="tscroll"><table class="htab"><thead><tr><th><button type="button" tabindex="-1">Semana</button></th><th><button type="button" tabindex="-1">Periodo</button></th><th><button type="button" tabindex="-1">Guardada</button></th>${HCOLS.map(([, l]) => `<th class="num"><button type="button" tabindex="-1">${esc(l)}</button></th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div></div>`;
+  document.querySelectorAll("#view tr[data-sem]").forEach(tr => tr.addEventListener("click", () => showWeek(tr.dataset.sem)));
+  $("#xlsHist").addEventListener("click", () => {
+    const data = rows.filter(r => r.m).map(r => { const o = { Semana:r.sem || "En curso", Periodo:r.per, Guardada:r.corte }; HCOLS.forEach(([k, l]) => o[l] = r.m[k]); return o; });
+    if (!window.XLSX) return; const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), "Historico semanal"); XLSX.writeFile(wb, `HistoricoSemanalFlota_LipuMty_${stamp()}.xlsx`); });
+  const cv = $("#hChart");
+  if (cv && window.Chart) { const pts = rows.filter(r => r.m).reverse(); if (HCHART) HCHART.destroy();
+    const ser = [["flota","Flota","#066a38"],["fdisp","Flota disponible","#3d5446"],["asg","Asignadas","#5FA36F"],["disp","Disponibles","#2563eb"],["tal","En taller","#E07B39"],["cor","En corralón","#AE2F25"]];
+    HCHART = new Chart(cv, { type:"line", data:{ labels:pts.map(r => r.sem ? semCorta(r.sem) : "En curso"), datasets:ser.map(([k, l, c]) => ({ label:l, data:pts.map(r => r.m[k]), borderColor:c, backgroundColor:c, tension:.25, pointRadius:4, borderWidth:2.5 })) },
+      options:{ responsive:true, maintainAspectRatio:false, interaction:{ mode:"index", intersect:false }, plugins:{ legend:{ position:"bottom" }, title:{ display:true, text:"Tendencia semanal de la flota (unidades)" } }, scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } } }); }
+  if (pend) histLoadAll();
+}
+V.hist = { label:"Histórico", ic:"🗓", custom: histView };
 
 /* =================== Arranque =================== */
 const CACHE_KEY = "lipu_flota_cache_v2";
@@ -1632,18 +1790,22 @@ async function load(manual){
     if (MCP === null) MCP = await getMcp();
     SOURCE = MCP ? "Google Sheets (conector)" : "Google Sheets";
     const raw = {};
-    msg("Leyendo SABANA (1 de 4)…"); raw.sabana = await loadRange("sabana");
-    msg("Leyendo RH, TRINOMIO, CONTRATO y TALLER (5 de 5)…");
-    const rest = ["rh","trinomio","contrato","taller"]; const vals = await Promise.all(rest.map(k => loadRange(k))); rest.forEach((k, i) => raw[k] = vals[i]);
+    msg("Leyendo SABANA (1 de 5)…"); raw.sabana = await loadRange("sabana");
+    msg("Leyendo RH, TRINOMIO, CONTRATO, TALLER e índice histórico (5 de 5)…");
+    const rest = ["rh","trinomio","contrato","taller"]; const idxP = loadIndex(); const vals = await Promise.all(rest.map(k => loadRange(k))); rest.forEach((k, i) => raw[k] = vals[i]);
+    WEEKS = await idxP;
     if (!raw.sabana.length) throw { code:"tool_error", message:"La pestaña SABANA llegó vacía." };
     msg("Armando el tablero…");
-    RAW = raw; M = build(raw); ROWS_READ = Object.values(raw).reduce((a, r) => a + r.length, 0);
-    setCorte(new Date(), false);
+    LIVE = { raw, M: build(raw), source: SOURCE, rows: Object.values(raw).reduce((a, r) => a + r.length, 0), t: new Date() };
+    if (SEL && !WEEKS.some(w => w.sem === SEL)) SEL = "";
+    if (!SEL) { RAW = raw; M = LIVE.M; ROWS_READ = LIVE.rows; }
+    msg("Leyendo la semana anterior para comparar…"); await setPrev();
+    setCorte(SEL ? new Date() : LIVE.t, false);
     try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t:Date.now(), raw })); } catch(e){}
     renderAll();
   } catch (e) {
     let cached = null; try { cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); } catch(x){}
-    if (cached && cached.raw && !M) { RAW = cached.raw; M = build(RAW); SOURCE = "copia local"; ROWS_READ = Object.values(RAW).reduce((a, r) => a + r.length, 0); setCorte(new Date(cached.t), true); renderAll(); }
+    if (cached && cached.raw && !M) { RAW = cached.raw; M = build(RAW); SOURCE = "copia local"; LIVE = { raw:RAW, M, source:SOURCE, rows:0, t:new Date(cached.t) }; ROWS_READ = Object.values(RAW).reduce((a, r) => a + r.length, 0); setCorte(new Date(cached.t), true); renderAll(); }
     showAlert("bad", `<b>Sin conexión a la hoja.</b> ${errMsg(e)}${M ? " Se muestra el último dato bueno." : ""}`, [["Reintentar", () => { MCP = null; load(true); }], ["Cargar Excel local", () => $("#fileIn").click()]]);
   } finally { clearTimeout(helpT); LOADING = false; $("#loader").hidden = true; }
 }
@@ -1656,7 +1818,7 @@ $("#fileIn").addEventListener("change", async ev => {
     const sh = n => { const s = wb.Sheets[n] || wb.Sheets[Object.keys(wb.Sheets).find(x => norm(x) === norm(n))]; return s ? XLSX.utils.sheet_to_json(s, { header:1, raw:false, defval:"" }) : []; };
     const raw = { sabana:sh("SABANA"), rh:sh("RH"), trinomio:sh("TRINOMIO"), contrato:sh("CONTRATO"), taller:sh("TALLER") };
     if (!raw.sabana.length) throw new Error("El archivo no trae la pestaña SABANA.");
-    RAW = raw; M = build(raw); SOURCE = "Excel local · " + f.name; ROWS_READ = Object.values(raw).reduce((a, r) => a + r.length, 0);
+    SEL = ""; PREV = null; PREV_SEM = ""; RAW = raw; M = build(raw); LIVE = { raw, M, source:"Excel local · " + f.name, rows:0, t:new Date() }; SOURCE = "Excel local · " + f.name; ROWS_READ = Object.values(raw).reduce((a, r) => a + r.length, 0);
     setCorte(new Date(), false); $("#alerts").innerHTML = ""; $("#loader").hidden = true; LOADING = false; renderAll();
   } catch (e) { showAlert("bad", `No se pudo leer el Excel: ${esc(e.message)}`); }
   ev.target.value = "";
