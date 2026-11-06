@@ -1430,7 +1430,7 @@ function renderMainNav(){
 window.addEventListener("resize", () => { const h = $(".top"); if (h) document.documentElement.style.setProperty("--toph", h.offsetHeight + "px"); });
 function renderTabs(){
   renderMainNav();
-  $("#tabs").innerHTML = ORDER.map(k => { const v = V[k]; const n = v.rows ? rowsOf(k, true).length : null;
+  $("#tabs").innerHTML = ORDER.filter(k => !MAIN_TABS.includes(k)).map(k => {   /* las principales viven solo en la barra superior */ const v = V[k]; const n = v.rows ? rowsOf(k, true).length : null;
     const red = k === "revisar" && M.rev.some(r => pass(r) && r.sev === "Crítico");
     return `<button class="tab" role="tab" type="button" aria-selected="${k === S.tab}" data-k="${k}">${v.ic} ${esc(v.label)}${n !== null ? `<span class="n${red ? " red" : ""}">${nf.format(n)}</span>` : ""}</button>`; }).join("");
   document.querySelectorAll(".tab").forEach(b => b.addEventListener("click", () => { S.tab = b.dataset.k; renderAll(); }));
