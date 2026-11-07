@@ -98,3 +98,21 @@ create index if not exists sabana_semanal_semana on public.sabana_semanal (seman
 alter table public.sabana_semanal enable row level security;
 
 comment on table public.sabana_semanal is 'Fotografía semanal de la pestaña SABANA (Flota y Carta Operativa, Lipu Monterrey).';
+
+-- Configuración privada de la carga (token que usan Apps Script y la función cargar-sabana). Sin políticas: solo service_role.
+create table if not exists public.carga_config (clave text primary key, valor text not null);
+alter table public.carga_config enable row level security;
+insert into public.carga_config (clave, valor) values ('token_carga_sabana', replace(gen_random_uuid()::text, '-', '') || replace(gen_random_uuid()::text, '-', ''))
+on conflict (clave) do nothing;
+
+create extension if not exists pg_net with schema extensions;
+
+-- Carga automática: cada lunes 06:00 hora de Monterrey (12:00 UTC) la función cargar-sabana lee la hoja y guarda la semana que termina
+create extension if not exists pg_cron;
+select cron.schedule('cargar-sabana-lunes', '0 12 * * 1', $$
+  select net.http_post(
+    url := 'https://xbzovcjjxrupuygarnbk.supabase.co/functions/v1/cargar-sabana',
+    body := '{"tipo":"AUTOMÁTICO"}'::jsonb,
+    headers := jsonb_build_object('Content-Type','application/json','x-carga-token',(select valor from public.carga_config where clave='token_carga_sabana')),
+    timeout_milliseconds := 120000);
+$$);
