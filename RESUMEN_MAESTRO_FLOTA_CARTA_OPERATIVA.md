@@ -1,6 +1,6 @@
 # RESUMEN MAESTRO · Flota y Carta Operativa · Lipu Monterrey (Traxión)
 
-> Última actualización: 14-nov-2026 (hora de Ciudad de México). Proyecto de Claude **"TABLEROS LIPU"** (Sistema Integral de Transporte).
+> Última actualización: 25-nov-2026 (hora de Ciudad de México). Proyecto de Claude **"TABLEROS LIPU"** (Sistema Integral de Transporte).
 > Este documento cubre el tablero **Flota y Carta Operativa** (SÁBANA, integración de flota, pre carta operativa, histórico semanal y su base en Supabase).
 > Otros resúmenes del proyecto: `claude/RESUMEN_MAESTRO.md` (descansos, horas y somnolencia) y `claude/RESUMEN_MAESTRO_PORTAL_Y_DATOS.md` (portal y plataforma de datos).
 
@@ -285,6 +285,26 @@ select status, return_message, start_time from cron.job_run_details order by sta
 - Semana ISO de lunes a domingo, formato `aaaa-Sss`.
 - 2026 tiene 53 semanas: la S53 va del 28-dic-2026 al 3-ene-2027.
 
+
+### 9.8 CATALOGOS (⬇ CATALOGOS, junto a Carta operativa) — 25-nov-2026
+Un solo Excel, siempre completo (no aplica filtros; sí respeta la semana elegida en el selector), con tres hojas:
+- **Catalogo Operadores**:
+  - es la unión de RH y TRINOMIO por nómina, sin vacantes; al 25-nov salen 429 nóminas;
+  - columnas: NOMINA, PLANTA, COORDINADOR, ZONA, NOMBRE, CATEGORIA, LOCALIDAD, ANTIGÜEDAD, JEFE DE COORDINADOR y ORIGEN;
+  - de TRINOMIO salen PLANTA, COORDINADOR, LOCALIDAD (= RUTA TRIN) y JEFE DE COORDINADOR (= GERENTE, tal como viene);
+  - de RH salen NOMBRE, CATEGORIA (= Puesto) y ANTIGÜEDAD;
+  - si falta un lado, se completa con el otro (el coordinador, con el "Jefe" de RH);
+  - ZONA va en blanco;
+  - ORIGEN marca "RH Y TRINOMIO", "SOLO RH" (8) o "SOLO TRINOMIO" (12).
+  - El usuario retrabaja a mano las columnas de "x" en adelante de su formato original.
+- **Catalogo Unidades**:
+  - mismas rutas que el Ranking, sin rutas sin unidad ni la unidad comodín "5";
+  - columnas: UNIDAD, PLANTA, JEFATURA CORD (= GERENTE), COORDINADOR, MODELO (año ODO), MODELO POR CONTRATO (año actual − antigüedad máx. del CONTRATO de la planta), CLIMA (aire acondicionado ODO), CUMPLE CON MODELO (SÁBANA), TIPO ("Sí" fijo), RUTA, NOMBRE, Nomina Operador, observaciones y Serie registro (1 fijo);
+  - en una vacante, la nómina es 1000000 y el nombre va vacío;
+  - observaciones lleva el Tipo de RH; pone 0 si el operador está activo, no tiene tipo o la ruta es vacante;
+  - las unidades en 2 rutas salen una vez por ruta.
+- **Operadores marcados**: solo los que no están en ambos lados.
+
 ---
 
 ## 10. Riesgos y temas abiertos
@@ -321,3 +341,4 @@ select status, return_message, start_time from cron.job_run_details order by sta
 8. **06-nov:** menú fijo y delgado con las vistas principales, Integración de flota y Planta vs contrato; Resumen primero; botón **Ranking**; vistas principales fuera de la fila de abajo.
 9. **07-nov:** Supabase: tabla `sabana_semanal`, función `cargar-sabana`, cron de los lunes; primera carga S45 (444 unidades).
 10. **09-nov:** primeros cortes automáticos correctos (hoja y Supabase, S45). Siguiente corte: 16-nov (S46).
+11. **25-nov:** botón **⬇ CATALOGOS** con el catálogo de operadores y el catálogo de unidades (ver 9.8).
