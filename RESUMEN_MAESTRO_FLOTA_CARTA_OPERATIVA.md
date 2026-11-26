@@ -321,6 +321,12 @@ Un solo Excel, siempre completo (no aplica filtros; sí respeta la semana elegid
 - Primera carga, 26-nov 12:49: 429 operadores (409 en ambos lados, 8 solo RH, 12 solo TRINOMIO).
 - La tabla no estaba vacía: traía el catálogo viejo de 354 filas (nombres repetidos). Se reemplazó y salieron 63 nóminas viejas. Copia del viejo en `respaldo_20nov.catalogo_operadores`.
 - Lectores: la vista `v_catalogo_operadores` y el trigger `lipu_completar_evento` (busca nómina por nombre).
+- **Catálogo de Unidades** → `public.catalogo_vehiculos`, columnas nuevas `cat_*`. La tabla ya traía 604 unidades de ODO, y **sus columnas no se tocan**.
+  - Hay **una fila por unidad** (`id_veh` único). Si la unidad está en 2+ rutas, los valores van unidos con " / " en el mismo orden, y `cat_rutas` dice cuántas rutas tiene.
+  - Columnas: `cat_planta`, `cat_jefatura_cord`, `cat_coordinador`, `cat_modelo`, `cat_modelo_por_contrato`, `cat_clima`, `cat_cumple_con_modelo`, `cat_tipo` ("Sí"), `cat_ruta`, `cat_nombre`, `cat_nomina_operador` (1000000 si vacante), `cat_observaciones` (Tipo de RH o 0), `cat_serie_registro` (1), `cat_rutas` y `cat_actualizado_al`.
+  - Las unidades que salen del catálogo quedan con `cat_*` vacías. Si una unidad no existía en la tabla, se agrega solo con `id_veh` y `cat_*` (26-nov: 1 unidad).
+  - Lo llena la misma función y el mismo cron diario. Primera carga, 26-nov: 414 unidades.
+  - Casi no se usa todavía. Lo que ya hace referencia a unidades en otros desarrollos **no se sustituyó**.
 
 ---
 
