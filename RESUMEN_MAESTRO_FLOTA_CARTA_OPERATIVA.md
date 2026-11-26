@@ -1,6 +1,6 @@
 # RESUMEN MAESTRO · Flota y Carta Operativa · Lipu Monterrey (Traxión)
 
-> Última actualización: 25-nov-2026 (hora de Ciudad de México). Proyecto de Claude **"TABLEROS LIPU"** (Sistema Integral de Transporte).
+> Última actualización: 26-nov-2026 (hora de Ciudad de México). Proyecto de Claude **"TABLEROS LIPU"** (Sistema Integral de Transporte).
 > Este documento cubre el tablero **Flota y Carta Operativa** (SÁBANA, integración de flota, pre carta operativa, histórico semanal y su base en Supabase).
 > Otros resúmenes del proyecto: `claude/RESUMEN_MAESTRO.md` (descansos, horas y somnolencia) y `claude/RESUMEN_MAESTRO_PORTAL_Y_DATOS.md` (portal y plataforma de datos).
 
@@ -305,6 +305,23 @@ Un solo Excel, siempre completo (no aplica filtros; sí respeta la semana elegid
   - las unidades en 2 rutas salen una vez por ruta.
 - **Operadores marcados**: solo los que no están en ambos lados.
 
+
+### 9.9 Catálogo oficial en Supabase — 26-nov-2026
+- `public.catalogo_operadores` = **Catalogo Operadores** del botón CATALOGOS. Es el catálogo que alimenta a los demás desarrollos.
+- Mapeo de columnas:
+  - `nomina_op` = NOMINA;
+  - `nombre_op` = NOMBRE;
+  - `jefe` = JEFE DE COORDINADOR (GERENTE de TRINOMIO);
+  - `coordinador` = COORDINADOR;
+  - `planta` = PLANTA;
+  - `ruta` = LOCALIDAD (RUTA TRIN);
+  - columnas nuevas: `zona` (vacía), `categoria`, `antiguedad`, `origen` y `actualizado_al`.
+- La carga la hace la función Edge **`cargar-catalogo-operadores`**: lee TRINOMIO (gid 1371588970) y RH (gid 1622232217) de la hoja pública, hace upsert por nómina y borra las nóminas que ya no vienen. Si la lectura trae menos de 50 nóminas de un lado, no toca nada.
+- **Cron `cargar-catalogo-operadores-diario`:** `15 13 * * *` (07:15 Monterrey).
+- Primera carga, 26-nov 12:49: 429 operadores (409 en ambos lados, 8 solo RH, 12 solo TRINOMIO).
+- La tabla no estaba vacía: traía el catálogo viejo de 354 filas (nombres repetidos). Se reemplazó y salieron 63 nóminas viejas. Copia del viejo en `respaldo_20nov.catalogo_operadores`.
+- Lectores: la vista `v_catalogo_operadores` y el trigger `lipu_completar_evento` (busca nómina por nombre).
+
 ---
 
 ## 10. Riesgos y temas abiertos
@@ -342,3 +359,4 @@ Un solo Excel, siempre completo (no aplica filtros; sí respeta la semana elegid
 9. **07-nov:** Supabase: tabla `sabana_semanal`, función `cargar-sabana`, cron de los lunes; primera carga S45 (444 unidades).
 10. **09-nov:** primeros cortes automáticos correctos (hoja y Supabase, S45). Siguiente corte: 16-nov (S46).
 11. **25-nov:** botón **⬇ CATALOGOS** con el catálogo de operadores y el catálogo de unidades (ver 9.8).
+12. **26-nov:** `catalogo_operadores` en Supabase llenado con el catálogo oficial y carga diaria (ver 9.9).
